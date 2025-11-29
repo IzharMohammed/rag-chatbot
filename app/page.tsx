@@ -7,12 +7,13 @@ import { TypingIndicator } from "@/components/typing-indicator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message, UploadedFile } from "@/types";
 import FileUpload from "@/components/kokonutui/file-upload";
-import { FileText, Sparkles } from "lucide-react";
+import { FileText, Sparkles, Upload, X } from "lucide-react";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isUploadPanelOpen, setIsUploadPanelOpen] = useState(false);
 
   const handleFilesUploaded = (file: File) => {
     const newFile: UploadedFile = {
@@ -65,17 +66,17 @@ Your question was: "${content}"`,
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Main Chat Area - Left Side */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col min-w-0">
         {/* Header */}
-        <div className="border-b border-border bg-card/30 px-6 py-4">
+        <div className="border-b border-border bg-card/30 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground">
-              <Sparkles className="h-5 w-5 text-background" />
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-foreground">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-background" />
             </div>
             <div>
-              <h1 className="text-lg font-bold">DocuChat AI</h1>
+              <h1 className="text-base sm:text-lg font-bold">DocuChat AI</h1>
               <p className="text-xs text-muted-foreground">
                 {uploadedFiles.length > 0
                   ? `${uploadedFiles.length} document${
@@ -90,21 +91,21 @@ Your question was: "${content}"`,
         {/* Messages Area */}
         <div className="flex-1 overflow-hidden">
           {!hasMessages ? (
-            <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-              <div className="mb-8">
-                <div className="relative mb-4 flex h-24 w-24 items-center justify-center rounded-full border border-border bg-white">
-                  <FileText className="h-12 w-12 text-foreground" />
+            <div className="flex h-full flex-col items-center justify-center p-4 sm:p-8 text-center">
+              <div className="mb-6 sm:mb-8">
+                <div className="relative mb-4 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full border border-border bg-white mx-auto">
+                  <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-foreground" />
                 </div>
-                <h2 className="mb-3 text-3xl font-bold text-foreground">
+                <h2 className="mb-3 text-2xl sm:text-3xl font-bold text-foreground">
                   Welcome to DocuChat AI
                 </h2>
-                <p className="max-w-md text-muted-foreground">
+                <p className="max-w-md text-sm sm:text-base text-muted-foreground px-4">
                   Upload your documents using the panel on the right, then start
                   asking questions.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {[
                   {
                     icon: FileText,
@@ -160,19 +161,59 @@ Your question was: "${content}"`,
         <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
       </div>
 
+      {/* Mobile Upload Button */}
+      <button
+        onClick={() => setIsUploadPanelOpen(true)}
+        className="md:hidden fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg hover:scale-105 transition-transform"
+        aria-label="Open upload panel"
+      >
+        <Upload className="h-6 w-6" />
+      </button>
+
+      {/* Backdrop for mobile */}
+      {isUploadPanelOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsUploadPanelOpen(false)}
+        />
+      )}
+
       {/* File Upload Panel - Right Side */}
-      <div className="w-96 border-l border-border bg-card/30">
+      <div
+        className={`
+          fixed md:relative inset-y-0 right-0 z-50
+          w-full sm:w-96 md:w-96
+          border-l border-border bg-card/30 backdrop-blur-sm
+          transform transition-transform duration-300 ease-in-out
+          ${
+            isUploadPanelOpen
+              ? "translate-x-0"
+              : "translate-x-full md:translate-x-0"
+          }
+        `}
+      >
         <div className="flex h-full flex-col">
           {/* Upload Header */}
-          <div className="border-b border-border px-6 py-4">
-            <h2 className="text-lg font-semibold">Documents</h2>
-            <p className="text-sm text-muted-foreground">
-              Upload your files to chat with them
-            </p>
+          <div className="border-b border-border px-4 sm:px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Documents</h2>
+                <p className="text-sm text-muted-foreground">
+                  Upload your files to chat with them
+                </p>
+              </div>
+              <button
+                onClick={() => setIsUploadPanelOpen(false)}
+                className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
+                aria-label="Close upload panel"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Upload Area */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <FileUpload onUploadSuccess={handleFilesUploaded} />
 
             {/* Uploaded Files List */}

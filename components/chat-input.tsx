@@ -28,7 +28,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
   };
 
   return (
-    <div className="border-t border-border/50 bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="border-t border-border/50 bg-background/95 px-3 py-3 sm:p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-4xl">
         <div className="relative flex items-end gap-2">
           <div className="relative flex-1">
@@ -39,7 +39,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
               placeholder="Ask anything about your documents..."
               disabled={disabled}
               rows={1}
-              className="max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-input bg-card/50 px-4 py-3 pr-12 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-input bg-card/50 px-3 sm:px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 height: "auto",
                 overflowY: message.split("\n").length > 3 ? "auto" : "hidden",
@@ -59,7 +59,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
           </motion.div>
         </div>
 
-        <p className="mt-2 text-center text-xs text-muted-foreground">
+        <p className="mt-2 text-center text-xs text-muted-foreground hidden sm:block">
           Press{" "}
           <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono">Enter</kbd>{" "}
           to send,{" "}
