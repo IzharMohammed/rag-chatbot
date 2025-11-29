@@ -93,7 +93,7 @@ Your question was: "${content}"`,
           {!hasMessages ? (
             <div className="flex h-full flex-col items-center justify-center p-4 sm:p-8 text-center">
               <div className="mb-6 sm:mb-8">
-                <div className="relative mb-4 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full border border-border bg-white mx-auto">
+                <div className="relative mb-4 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full border border-border bg-muted mx-auto">
                   <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-foreground" />
                 </div>
                 <h2 className="mb-3 text-2xl sm:text-3xl font-bold text-foreground">
