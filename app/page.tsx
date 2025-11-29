@@ -1,69 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { Sidebar } from "@/components/sidebar";
-import { FileUploadZone } from "@/components/file-upload-zone";
-import { EmptyState } from "@/components/empty-state";
 import { ChatMessage } from "@/components/chat-message";
 import { ChatInput } from "@/components/chat-input";
 import { TypingIndicator } from "@/components/typing-indicator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Message, UploadedFile, ChatSession } from "@/types";
+import { Message, UploadedFile } from "@/types";
+import FileUpload from "@/components/kokonutui/file-upload";
+import { FileText, Sparkles } from "lucide-react";
 
 export default function Home() {
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
-  const currentSession = sessions.find((s) => s.id === currentSessionId);
-
-  const handleNewChat = () => {
-    const newSession: ChatSession = {
+  const handleFilesUploaded = (file: File) => {
+    const newFile: UploadedFile = {
       id: Math.random().toString(36).substr(2, 9),
-      name: "New Chat",
-      createdAt: new Date(),
-      messages: [],
-      files: [],
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      uploadedAt: new Date(),
     };
-    setSessions([newSession, ...sessions]);
-    setCurrentSessionId(newSession.id);
-    setMessages([]);
-    setUploadedFiles([]);
-  };
 
-  const handleSelectSession = (id: string) => {
-    const session = sessions.find((s) => s.id === id);
-    if (session) {
-      setCurrentSessionId(id);
-      setMessages(session.messages);
-      setUploadedFiles(session.files);
-    }
-  };
-
-  const handleFilesUploaded = (files: UploadedFile[]) => {
-    setUploadedFiles(files);
-
-    // Create a new session if none exists
-    if (!currentSessionId && files.length > 0) {
-      const newSession: ChatSession = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: files[0].name,
-        createdAt: new Date(),
-        messages: [],
-        files: files,
-      };
-      setSessions([newSession, ...sessions]);
-      setCurrentSessionId(newSession.id);
-    } else if (currentSessionId) {
-      // Update current session with new files
-      setSessions(
-        sessions.map((s) =>
-          s.id === currentSessionId ? { ...s, files: files } : s
-        )
-      );
-    }
+    setUploadedFiles([...uploadedFiles, newFile]);
   };
 
   const handleSendMessage = async (content: string) => {
@@ -80,25 +40,7 @@ export default function Home() {
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
 
-    // Update session
-    if (currentSessionId) {
-      setSessions(
-        sessions.map((s) =>
-          s.id === currentSessionId
-            ? {
-                ...s,
-                messages: updatedMessages,
-                name:
-                  s.messages.length === 0
-                    ? content.slice(0, 30) + (content.length > 30 ? "..." : "")
-                    : s.name,
-              }
-            : s
-        )
-      );
-    }
-
-    // Simulate AI response (you'll replace this with actual API call later)
+    // Simulate AI response
     setIsTyping(true);
     setTimeout(() => {
       const aiMessage: Message = {
@@ -117,74 +59,96 @@ Your question was: "${content}"`,
       const newMessages = [...updatedMessages, aiMessage];
       setMessages(newMessages);
       setIsTyping(false);
-
-      // Update session with AI response
-      if (currentSessionId) {
-        setSessions(
-          sessions.map((s) =>
-            s.id === currentSessionId ? { ...s, messages: newMessages } : s
-          )
-        );
-      }
     }, 1500);
   };
 
-  const hasFiles = uploadedFiles.length > 0;
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-background via-background to-background/95">
-      <Sidebar
-        sessions={sessions}
-        currentSessionId={currentSessionId}
-        onNewChat={handleNewChat}
-        onSelectSession={handleSelectSession}
-      />
+    <div className="flex h-screen bg-background">
+      {/* Main Chat Area - Left Side */}
+      <div className="flex flex-1 flex-col">
+        {/* Header */}
+        <div className="border-b border-border bg-card/30 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground">
+              <Sparkles className="h-5 w-5 text-background" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold">DocuChat AI</h1>
+              <p className="text-xs text-muted-foreground">
+                {uploadedFiles.length > 0
+                  ? `${uploadedFiles.length} document${
+                      uploadedFiles.length !== 1 ? "s" : ""
+                    } uploaded`
+                  : "Upload documents to start chatting"}
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <main className="flex flex-1 flex-col">
-        {/* Main Content Area */}
+        {/* Messages Area */}
         <div className="flex-1 overflow-hidden">
-          {!hasFiles && !hasMessages ? (
-            <EmptyState />
+          {!hasMessages ? (
+            <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+              <div className="mb-8">
+                <div className="relative mb-4 flex h-24 w-24 items-center justify-center rounded-full border border-border bg-white">
+                  <FileText className="h-12 w-12 text-foreground" />
+                </div>
+                <h2 className="mb-3 text-3xl font-bold text-foreground">
+                  Welcome to DocuChat AI
+                </h2>
+                <p className="max-w-md text-muted-foreground">
+                  Upload your documents using the panel on the right, then start
+                  asking questions.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {[
+                  {
+                    icon: FileText,
+                    title: "Upload Documents",
+                    description: "PDF, DOCX, TXT supported",
+                  },
+                  {
+                    icon: Sparkles,
+                    title: "Ask Questions",
+                    description: "Natural language queries",
+                  },
+                  {
+                    icon: FileText,
+                    title: "Get Answers",
+                    description: "Instant AI responses",
+                  },
+                ].map((feature, index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg border border-border/40 bg-card/50 p-6 backdrop-blur-sm"
+                  >
+                    <feature.icon className="mb-3 h-8 w-8 text-foreground" />
+                    <h3 className="mb-1 font-semibold">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
             <ScrollArea className="h-full">
-              <div className="mx-auto max-w-4xl p-4">
-                {/* File Upload Zone - Show only if no files uploaded */}
-                {!hasFiles && (
-                  <div className="mb-6">
-                    <FileUploadZone
-                      onFilesUploaded={handleFilesUploaded}
-                      uploadedFiles={uploadedFiles}
-                    />
-                  </div>
-                )}
-
-                {/* Show uploaded files summary if files exist */}
-                {hasFiles && !hasMessages && (
-                  <div className="mb-6">
-                    <FileUploadZone
-                      onFilesUploaded={handleFilesUploaded}
-                      uploadedFiles={uploadedFiles}
-                    />
-                  </div>
-                )}
-
-                {/* Chat Messages */}
-                {hasMessages && (
-                  <div className="space-y-0">
-                    {messages.map((message) => (
-                      <ChatMessage key={message.id} message={message} />
-                    ))}
-                    {isTyping && (
-                      <div className="bg-muted/30 p-4">
-                        <div className="flex gap-4">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted border border-border">
-                            <span className="text-xs text-foreground">AI</span>
-                          </div>
-                          <TypingIndicator />
-                        </div>
+              <div className="mx-auto max-w-3xl">
+                {messages.map((message) => (
+                  <ChatMessage key={message.id} message={message} />
+                ))}
+                {isTyping && (
+                  <div className="bg-muted/30 p-4">
+                    <div className="flex gap-4">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
+                        <span className="text-xs text-foreground">AI</span>
                       </div>
-                    )}
+                      <TypingIndicator />
+                    </div>
                   </div>
                 )}
               </div>
@@ -192,11 +156,52 @@ Your question was: "${content}"`,
           )}
         </div>
 
-        {/* Chat Input - Show only if files are uploaded */}
-        {hasFiles && (
-          <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
-        )}
-      </main>
+        {/* Chat Input */}
+        <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+      </div>
+
+      {/* File Upload Panel - Right Side */}
+      <div className="w-96 border-l border-border bg-card/30">
+        <div className="flex h-full flex-col">
+          {/* Upload Header */}
+          <div className="border-b border-border px-6 py-4">
+            <h2 className="text-lg font-semibold">Documents</h2>
+            <p className="text-sm text-muted-foreground">
+              Upload your files to chat with them
+            </p>
+          </div>
+
+          {/* Upload Area */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <FileUpload onUploadSuccess={handleFilesUploaded} />
+
+            {/* Uploaded Files List */}
+            {uploadedFiles.length > 0 && (
+              <div className="mt-6 space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Uploaded Files ({uploadedFiles.length})
+                </h3>
+                {uploadedFiles.map((file) => (
+                  <div
+                    key={file.id}
+                    className="flex items-center gap-3 rounded-lg border border-border/50 bg-card p-3"
+                  >
+                    <FileText className="h-5 w-5 text-foreground" />
+                    <div className="flex-1 overflow-hidden">
+                      <p className="truncate text-sm font-medium">
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {(file.size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
