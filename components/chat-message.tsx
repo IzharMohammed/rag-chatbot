@@ -35,17 +35,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
       transition={{ duration: 0.3 }}
       className={`group flex gap-4 p-4 ${isUser ? "" : "bg-muted/30"}`}
     >
-      <div
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-          isUser
-            ? "bg-gradient-to-br from-emerald-500 to-teal-600"
-            : "bg-gradient-to-br from-purple-500 to-blue-600"
-        }`}
-      >
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted border border-border">
         {isUser ? (
-          <User className="h-4 w-4 text-white" />
+          <User className="h-4 w-4 text-foreground" />
         ) : (
-          <Bot className="h-4 w-4 text-white" />
+          <Bot className="h-4 w-4 text-foreground" />
         )}
       </div>
 

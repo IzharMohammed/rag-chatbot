@@ -39,7 +39,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
               placeholder="Ask anything about your documents..."
               disabled={disabled}
               rows={1}
-              className="max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-input bg-card/50 px-4 py-3 pr-12 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-input bg-card/50 px-4 py-3 pr-12 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 height: "auto",
                 overflowY: message.split("\n").length > 3 ? "auto" : "hidden",
@@ -52,7 +52,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
               onClick={handleSend}
               disabled={!message.trim() || disabled}
               size="icon"
-              className="h-11 w-11 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
+              className="h-11 w-11 rounded-xl bg-foreground text-background hover:bg-foreground/90"
             >
               <Send className="h-4 w-4" />
             </Button>

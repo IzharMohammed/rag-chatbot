@@ -133,7 +133,7 @@ Your question was: "${content}"`,
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-background via-background to-purple-950/10">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-background via-background to-background/95">
       <Sidebar
         sessions={sessions}
         currentSessionId={currentSessionId}
@@ -178,8 +178,8 @@ Your question was: "${content}"`,
                     {isTyping && (
                       <div className="bg-muted/30 p-4">
                         <div className="flex gap-4">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-600">
-                            <span className="text-xs text-white">AI</span>
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted border border-border">
+                            <span className="text-xs text-foreground">AI</span>
                           </div>
                           <TypingIndicator />
                         </div>

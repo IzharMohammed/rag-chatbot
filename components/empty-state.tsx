@@ -22,16 +22,14 @@ export function EmptyState() {
         }}
         className="relative mb-8"
       >
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-3xl" />
-        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-blue-600">
-          <FileText className="h-12 w-12 text-white" />
+        <div className="absolute inset-0 rounded-full bg-white/5 blur-3xl" />
+        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white border border-border">
+          <FileText className="h-12 w-12 text-foreground" />
         </div>
       </motion.div>
 
-      <h2 className="mb-3 text-3xl font-bold">
-        <span className="bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
-          Welcome to DocuChat AI
-        </span>
+      <h2 className="mb-3 text-3xl font-bold text-foreground">
+        Welcome to DocuChat AI
       </h2>
 
       <p className="mb-8 max-w-md text-muted-foreground">
@@ -62,9 +60,9 @@ export function EmptyState() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + index * 0.1 }}
-            className="group rounded-lg border border-border/40 bg-card/50 p-6 backdrop-blur-sm transition-all hover:border-purple-500/50 hover:bg-card/80"
+            className="group rounded-lg border border-border/40 bg-card/50 backdrop-blur-sm transition-all hover:border-foreground/20 hover:bg-card/80"
           >
-            <feature.icon className="mb-3 h-8 w-8 text-purple-500 transition-transform group-hover:scale-110" />
+            <feature.icon className="mb-3 h-8 w-8 text-foreground transition-transform group-hover:scale-110" />
             <h3 className="mb-1 font-semibold">{feature.title}</h3>
             <p className="text-sm text-muted-foreground">
               {feature.description}

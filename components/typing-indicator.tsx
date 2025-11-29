@@ -8,7 +8,7 @@ export function TypingIndicator() {
       {[0, 1, 2].map((i) => (
         <motion.div
           key={i}
-          className="h-2 w-2 rounded-full bg-primary/60"
+          className="h-2 w-2 rounded-full bg-foreground/60"
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.5, 1, 0.5],

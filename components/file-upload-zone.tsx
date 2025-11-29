@@ -65,20 +65,20 @@ export function FileUploadZone({
         <motion.div
           className={`relative overflow-hidden rounded-xl border-2 border-dashed p-8 transition-all cursor-pointer ${
             isDragActive
-              ? "border-purple-500 bg-purple-500/10"
-              : "border-border/50 bg-card/30 hover:border-purple-500/50 hover:bg-card/50"
+              ? "border-foreground bg-foreground/5"
+              : "border-border/50 bg-card/30 hover:border-foreground/30 hover:bg-card/50"
           }`}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
         >
           <input {...getInputProps()} />
 
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="absolute inset-0 bg-foreground/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
           <div className="relative flex flex-col items-center justify-center text-center">
             <motion.div
               animate={isDragActive ? { scale: 1.1 } : { scale: 1 }}
-              className="mb-4 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 p-4"
+              className="mb-4 rounded-full bg-foreground p-4"
             >
               <Upload className="h-8 w-8 text-white" />
             </motion.div>
@@ -123,8 +123,8 @@ export function FileUploadZone({
                   className="flex items-center justify-between rounded-lg border border-border/50 bg-card/30 p-3 backdrop-blur-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="rounded-lg bg-gradient-to-br from-purple-500/10 to-blue-500/10 p-2">
-                      <Icon className="h-5 w-5 text-purple-500" />
+                    <div className="rounded-lg bg-muted p-2">
+                      <Icon className="h-5 w-5 text-foreground" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{file.name}</span>

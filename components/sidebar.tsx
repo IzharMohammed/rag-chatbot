@@ -58,8 +58,8 @@ export function Sidebar({
             >
               {/* Header */}
               <div className="flex items-center gap-3 p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-blue-600">
-                  <Sparkles className="h-5 w-5 text-white" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground">
+                  <Sparkles className="h-5 w-5 text-background" />
                 </div>
                 <div>
                   <h1 className="text-lg font-bold">DocuChat AI</h1>
@@ -79,7 +79,7 @@ export function Sidebar({
                 >
                   <Button
                     onClick={onNewChat}
-                    className="w-full justify-start gap-2 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
+                    className="w-full justify-start gap-2 bg-foreground text-background hover:bg-foreground/90"
                   >
                     <Plus className="h-4 w-4" />
                     New Chat
@@ -108,7 +108,7 @@ export function Sidebar({
                         }}
                         className={`w-full rounded-lg p-3 text-left transition-colors ${
                           currentSessionId === session.id
-                            ? "bg-purple-500/10 text-purple-500"
+                            ? "bg-muted text-foreground font-medium"
                             : "hover:bg-muted/50"
                         }`}
                       >
