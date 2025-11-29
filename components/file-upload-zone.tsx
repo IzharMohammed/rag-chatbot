@@ -61,47 +61,48 @@ export function FileUploadZone({
 
   return (
     <div className="space-y-4">
-      <motion.div
-        {...getRootProps()}
-        className={`relative overflow-hidden rounded-xl border-2 border-dashed p-8 transition-all cursor-pointer ${
-          isDragActive
-            ? "border-purple-500 bg-purple-500/10"
-            : "border-border/50 bg-card/30 hover:border-purple-500/50 hover:bg-card/50"
-        }`}
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-      >
-        <input {...getInputProps()} />
+      <div {...getRootProps()}>
+        <motion.div
+          className={`relative overflow-hidden rounded-xl border-2 border-dashed p-8 transition-all cursor-pointer ${
+            isDragActive
+              ? "border-purple-500 bg-purple-500/10"
+              : "border-border/50 bg-card/30 hover:border-purple-500/50 hover:bg-card/50"
+          }`}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+        >
+          <input {...getInputProps()} />
 
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        <div className="relative flex flex-col items-center justify-center text-center">
-          <motion.div
-            animate={isDragActive ? { scale: 1.1 } : { scale: 1 }}
-            className="mb-4 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 p-4"
-          >
-            <Upload className="h-8 w-8 text-white" />
-          </motion.div>
+          <div className="relative flex flex-col items-center justify-center text-center">
+            <motion.div
+              animate={isDragActive ? { scale: 1.1 } : { scale: 1 }}
+              className="mb-4 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 p-4"
+            >
+              <Upload className="h-8 w-8 text-white" />
+            </motion.div>
 
-          <h3 className="mb-2 text-lg font-semibold">
-            {isDragActive ? "Drop your files here" : "Upload Documents"}
-          </h3>
+            <h3 className="mb-2 text-lg font-semibold">
+              {isDragActive ? "Drop your files here" : "Upload Documents"}
+            </h3>
 
-          <p className="mb-4 text-sm text-muted-foreground">
-            Drag & drop or click to browse
-          </p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Drag & drop or click to browse
+            </p>
 
-          <div className="flex flex-wrap justify-center gap-2">
-            <Badge variant="secondary">PDF</Badge>
-            <Badge variant="secondary">DOCX</Badge>
-            <Badge variant="secondary">TXT</Badge>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Badge variant="secondary">PDF</Badge>
+              <Badge variant="secondary">DOCX</Badge>
+              <Badge variant="secondary">TXT</Badge>
+            </div>
+
+            <p className="mt-4 text-xs text-muted-foreground">
+              Maximum file size: 10MB
+            </p>
           </div>
-
-          <p className="mt-4 text-xs text-muted-foreground">
-            Maximum file size: 10MB
-          </p>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
       <AnimatePresence>
         {files.length > 0 && (
