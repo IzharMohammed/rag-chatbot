@@ -47,8 +47,8 @@ export async function POST(req: Request) {
         // Validate file
         validateFile(file);
 
-        // Create uploads directory if it doesn't exist
-        const uploadsDir = join(process.cwd(), "uploads");
+        // Create uploads directory in /tmp (Vercel-compatible)
+        const uploadsDir = "/tmp/uploads";
         if (!existsSync(uploadsDir)) {
             await mkdir(uploadsDir, { recursive: true });
         }
