@@ -1,95 +1,178 @@
-
 import { webSearch } from "@/lib/tools";
 import { NextResponse } from "next/server";
 import { baseMessages } from "@/lib/constant";
 import { getGroqChatCompletion } from "@/lib/groq";
-import { vectorStore } from "../upload-pdf/route";
+import { getVectorStore } from "@/lib/vectorstore";
+import type { Document } from "@langchain/core/documents";
 
-export async function POST(req: Request) {
-    const { message } = await req.json();
-    console.log("message from frontend:-", message);
+// Constants
+const MAX_CONTEXT_CHUNKS = 4;
+const MAX_MESSAGE_LENGTH = 10000;
 
-    // Retrieve relevant context from Pinecone
-    let contextualizedMessage = message;
+/**
+ * Validates the incoming message
+ * @param message - The user's message
+ * @throws Error if validation fails
+ */
+function validateMessage(message: string): void {
+    if (!message || typeof message !== 'string') {
+        throw new Error("Message is required and must be a string");
+    }
+
+    if (message.trim().length === 0) {
+        throw new Error("Message cannot be empty");
+    }
+
+    if (message.length > MAX_MESSAGE_LENGTH) {
+        throw new Error(`Message exceeds maximum length of ${MAX_MESSAGE_LENGTH} characters`);
+    }
+}
+
+/**
+ * Retrieves relevant context from Pinecone based on user query
+ * @param query - The user's query
+ * @returns Contextualized message or original query
+ */
+async function getContextualizedMessage(query: string): Promise<string> {
     try {
-        console.log("calling similarity search");
-
-        const relevantDocs = await vectorStore.similaritySearch(message, 4); // Get top 4 most relevant chunks
+        const vectorStore = getVectorStore();
+        const relevantDocs: Document[] = await vectorStore.similaritySearch(query, MAX_CONTEXT_CHUNKS);
 
         if (relevantDocs.length > 0) {
             const context = relevantDocs
                 .map((doc, index) => `[Document ${index + 1}]\n${doc.pageContent}`)
                 .join("\n\n");
 
-            console.log("Retrieved context from Pinecone:", context.substring(0, 200) + "...");
+            console.log(`Retrieved ${relevantDocs.length} relevant documents from Pinecone`);
+            console.log("Context preview:", context.substring(0, 200) + "...");
 
             // Augment the user's message with retrieved context
-            contextualizedMessage = `Context from uploaded documents:
+            return `Context from uploaded documents:
 ${context}
 
-User Question: ${message}
+User Question: ${query}
 
 Please answer the user's question based on the context provided above. If the context doesn't contain relevant information, let the user know.`;
         } else {
             console.log("No relevant documents found in Pinecone");
+            return query;
         }
     } catch (error) {
         console.error("Error retrieving from Pinecone:", error);
-        // Continue without context if retrieval fails
+        // If retrieval fails, continue with original query
+        return query;
     }
+}
 
-    baseMessages.push({ role: 'user', content: contextualizedMessage });
+export async function POST(req: Request) {
+    try {
+        // Parse and validate request
+        const body = await req.json();
+        const { message } = body;
 
-    const chatCompletion = await getGroqChatCompletion(baseMessages);
-    const aiMessage = chatCompletion.choices[0].message;
-    console.log("ai message:-", aiMessage);
+        validateMessage(message);
 
-    baseMessages.push({ role: 'assistant', content: aiMessage.content, tool_calls: aiMessage.tool_calls });
+        console.log("User message:", message);
 
-    if (aiMessage.tool_calls) {
-        for (const toolCall of aiMessage.tool_calls) {
-            if (toolCall.function.name === "webSearch") {
-                const args = JSON.parse(toolCall.function.arguments);
-                console.log(`Tool call received: webSearch with args: ${JSON.stringify(args)}`);
+        // Retrieve relevant context from Pinecone
+        const contextualizedMessage = await getContextualizedMessage(message);
 
-                let toolResult = "";
-                let attempts = 0;
-                const maxRetries = 3;
+        // Add contextualized message to conversation history
+        baseMessages.push({ role: 'user', content: contextualizedMessage });
 
-                while (attempts < maxRetries) {
-                    try {
-                        toolResult = await webSearch(args);
-                        break; // Success, exit loop
-                    } catch (error) {
-                        attempts++;
-                        console.error(`webSearch failed (attempt ${attempts}/${maxRetries}):`, error);
-                        if (attempts === maxRetries) {
-                            toolResult = "Error: Failed to perform web search after multiple attempts.";
-                        }
-                    }
-                }
+        // Get initial response from LLM
+        const chatCompletion = await getGroqChatCompletion(baseMessages);
+        const aiMessage = chatCompletion.choices[0].message;
 
-                baseMessages.push({
-                    tool_call_id: toolCall.id,
-                    role: "tool",
-                    content: toolResult,
-                });
-            }
+        if (!aiMessage || !aiMessage.content) {
+            throw new Error("Invalid response from LLM");
         }
 
-        // Second call to LLM with tool results
-        const secondChatCompletion = await getGroqChatCompletion(baseMessages);
-        const secondAiMessage = secondChatCompletion.choices[0].message;
+        console.log("AI response received");
 
-        baseMessages.push({ role: 'assistant', content: secondAiMessage.content });
-        return NextResponse.json({
-            message: secondAiMessage.content,
-            usage: secondChatCompletion.usage
+        // Add AI response to conversation history
+        baseMessages.push({
+            role: 'assistant',
+            content: aiMessage.content,
+            tool_calls: aiMessage.tool_calls
         });
-    }
 
-    return NextResponse.json({
-        message: aiMessage.content,
-        usage: chatCompletion.usage
-    });
+        // Handle tool calls (e.g., web search)
+        if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
+            for (const toolCall of aiMessage.tool_calls) {
+                if (toolCall.function.name === "webSearch") {
+                    const args = JSON.parse(toolCall.function.arguments);
+                    console.log(`Tool call: webSearch with args:`, args);
+
+                    let toolResult = "";
+                    let attempts = 0;
+                    const maxRetries = 3;
+
+                    // Retry logic for web search
+                    while (attempts < maxRetries) {
+                        try {
+                            toolResult = await webSearch(args);
+                            console.log("Web search successful");
+                            break;
+                        } catch (error) {
+                            attempts++;
+                            console.error(`Web search failed (attempt ${attempts}/${maxRetries}):`, error);
+                            if (attempts === maxRetries) {
+                                toolResult = "Error: Failed to perform web search after multiple attempts.";
+                            }
+                        }
+                    }
+
+                    // Add tool result to conversation
+                    baseMessages.push({
+                        tool_call_id: toolCall.id,
+                        role: "tool",
+                        content: toolResult,
+                    });
+                }
+            }
+
+            // Get second response with tool results
+            const secondChatCompletion = await getGroqChatCompletion(baseMessages);
+            const secondAiMessage = secondChatCompletion.choices[0].message;
+
+            if (!secondAiMessage || !secondAiMessage.content) {
+                throw new Error("Invalid second response from LLM");
+            }
+
+            baseMessages.push({ role: 'assistant', content: secondAiMessage.content });
+
+            return NextResponse.json({
+                success: true,
+                message: secondAiMessage.content,
+                usage: secondChatCompletion.usage
+            });
+        }
+
+        // Return initial response if no tool calls
+        return NextResponse.json({
+            success: true,
+            message: aiMessage.content,
+            usage: chatCompletion.usage
+        });
+
+    } catch (error) {
+        console.error("Error in chat endpoint:", error);
+
+        // Determine appropriate status code
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+        const statusCode =
+            errorMessage.includes("required") ||
+                errorMessage.includes("cannot be empty") ||
+                errorMessage.includes("exceeds maximum") ? 400 : 500;
+
+        return NextResponse.json(
+            {
+                success: false,
+                error: errorMessage,
+                message: "Sorry, I encountered an error while processing your message. Please try again."
+            },
+            { status: statusCode }
+        );
+    }
 }
