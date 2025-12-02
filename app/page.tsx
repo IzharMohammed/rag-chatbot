@@ -11,14 +11,14 @@ import { FileText, Sparkles, Upload, X } from "lucide-react";
 
 /**
  * Implementation plan
- * Stage 1: Indexting
- * 1. Load the document - pdf, text - completed
- * 2. Chunk the document - completed
- * 3. Generate vector embeddings - completed
-
+ * Stage 1: Indexing
+ * 1. Load the document - pdf, text
+ * 2. Chunk the document
+ * 3. Generate vector embeddings
+ * 4. Store in vector database
  *
  * Stage 2: Using the chatbot
- * 1. Setup LLM 
+ * 1. Setup LLM
  * 2. Add retrieval step
  * 3. Pass input + relevant information to LLM
  * 4. Congratulations
@@ -38,7 +38,7 @@ export default function Home() {
       totalTokens: 0,
     });
 
-  const handleFilesUploaded = (file: File) => {
+  const handleFilesUploaded = async (file: File) => {
     const newFile: UploadedFile = {
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
@@ -48,6 +48,25 @@ export default function Home() {
     };
 
     setUploadedFiles([...uploadedFiles, newFile]);
+
+    // Send PDF to backend for processing
+    if (file.type === "application/pdf") {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("/api/upload-pdf", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        console.log("PDF processed:", data);
+        // TODO: Store the document ID for later retrieval
+      } catch (error) {
+        console.error("Error uploading PDF:", error);
+      }
+    }
   };
 
   const handleSendMessage = async (content: string) => {
