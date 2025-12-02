@@ -54,7 +54,7 @@ export default function Home() {
       try {
         const formData = new FormData();
         formData.append("file", file);
-
+        console.log("formData:-", formData);
         const response = await fetch("/api/upload-pdf", {
           method: "POST",
           body: formData,
