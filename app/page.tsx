@@ -72,9 +72,9 @@ Your question was: "${content}"`,
         {/* Header */}
         <div className="border-b border-border bg-card/30 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-foreground">
+            {/* <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-foreground">
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-background" />
-            </div>
+            </div> */}
             <div>
               <h1 className="text-base sm:text-lg font-bold">DocuChat AI</h1>
               <p className="text-xs text-muted-foreground">

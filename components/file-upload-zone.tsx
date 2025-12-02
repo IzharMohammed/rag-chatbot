@@ -6,7 +6,7 @@ import { useDropzone } from "react-dropzone";
 import { Upload, X, FileText, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { SUPPORTED_FILE_TYPES, MAX_FILE_SIZE } from "@/lib/constants";
+import { SUPPORTED_FILE_TYPES, MAX_FILE_SIZE } from "@/lib/constant";
 import { UploadedFile } from "@/types";
 
 interface FileUploadZoneProps {
