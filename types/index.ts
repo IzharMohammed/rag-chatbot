@@ -26,3 +26,9 @@ export interface TokenUsage {
     completion_tokens: number;
     total_tokens: number;
 }
+
+export interface DetailedTokenUsage {
+    totalInputTokens: number;
+    totalOutputTokens: number;
+    totalTokens: number;
+}

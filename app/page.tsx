@@ -5,7 +5,7 @@ import { ChatMessage } from "@/components/chat-message";
 import { ChatInput } from "@/components/chat-input";
 import { TypingIndicator } from "@/components/typing-indicator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Message, UploadedFile, TokenUsage } from "@/types";
+import { Message, UploadedFile, TokenUsage, DetailedTokenUsage } from "@/types";
 import FileUpload from "@/components/kokonutui/file-upload";
 import { FileText, Sparkles, Upload, X } from "lucide-react";
 
@@ -16,6 +16,12 @@ export default function Home() {
   const [isUploadPanelOpen, setIsUploadPanelOpen] = useState(false);
   const [totalTokens, setTotalTokens] = useState(0);
   const [showTokens, setShowTokens] = useState(false);
+  const [detailedTokenUsage, setDetailedTokenUsage] =
+    useState<DetailedTokenUsage>({
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalTokens: 0,
+    });
 
   const handleFilesUploaded = (file: File) => {
     const newFile: UploadedFile = {
@@ -63,6 +69,12 @@ export default function Home() {
       // Update token usage if available
       if (data.usage) {
         setTotalTokens((prev) => prev + data.usage.total_tokens);
+        setDetailedTokenUsage((prev) => ({
+          totalInputTokens: prev.totalInputTokens + data.usage.prompt_tokens,
+          totalOutputTokens:
+            prev.totalOutputTokens + data.usage.completion_tokens,
+          totalTokens: prev.totalTokens + data.usage.total_tokens,
+        }));
       }
 
       const aiMessage: Message = {
@@ -115,19 +127,6 @@ export default function Home() {
                   : "Upload documents to start chatting"}
               </p>
             </div>
-            {totalTokens > 0 && (
-              <button
-                onClick={() => setShowTokens(!showTokens)}
-                className="text-right hover:bg-muted/50 rounded-lg px-3 py-2 transition-colors"
-              >
-                <p className="text-xs font-medium text-foreground">
-                  {showTokens ? `${totalTokens.toLocaleString()} tokens` : "🔢"}
-                </p>
-                {showTokens && (
-                  <p className="text-xs text-muted-foreground">total used</p>
-                )}
-              </button>
-            )}
           </div>
         </div>
 
@@ -201,7 +200,11 @@ export default function Home() {
         </div>
 
         {/* Chat Input */}
-        <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          disabled={isTyping}
+          tokenUsage={detailedTokenUsage}
+        />
       </div>
 
       {/* Mobile Upload Button */}

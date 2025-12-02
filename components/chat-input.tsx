@@ -4,13 +4,20 @@ import { useState, KeyboardEvent } from "react";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TokenUsageDisplay } from "@/components/token-usage-display";
+import { DetailedTokenUsage } from "@/types";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
+  tokenUsage?: DetailedTokenUsage;
 }
 
-export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
+export function ChatInput({
+  onSendMessage,
+  disabled = false,
+  tokenUsage,
+}: ChatInputProps) {
   const [message, setMessage] = useState("");
 
   const handleSend = () => {
@@ -46,6 +53,11 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
               }}
             />
           </div>
+
+          {/* Token Usage Icon */}
+          {tokenUsage && tokenUsage.totalTokens > 0 && (
+            <TokenUsageDisplay usage={tokenUsage} />
+          )}
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
