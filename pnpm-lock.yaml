@@ -10,13 +10,22 @@ importers:
     dependencies:
       '@langchain/community':
         specifier: ^1.0.6
-        version: 1.0.6(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(zod@4.1.13))(@ibm-cloud/watsonx-ai@1.7.4)(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(ibm-cloud-sdk-core@5.4.4)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(pdf-parse@1.1.1)(playwright@1.57.0)(ws@8.18.3)
+        version: 1.0.6(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(zod@4.1.13))(@ibm-cloud/watsonx-ai@1.7.4)(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@pinecone-database/pinecone@5.1.2)(ibm-cloud-sdk-core@5.4.4)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(pdf-parse@1.1.1)(playwright@1.57.0)(ws@8.18.3)
       '@langchain/core':
         specifier: ^1.1.1
         version: 1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13))
+      '@langchain/google-genai':
+        specifier: ^2.0.1
+        version: 2.0.1(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))
+      '@langchain/pinecone':
+        specifier: ^1.0.1
+        version: 1.0.1(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@pinecone-database/pinecone@5.1.2)
       '@langchain/textsplitters':
         specifier: ^1.0.1
         version: 1.0.1(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))
+      '@pinecone-database/pinecone':
+        specifier: ^5.1.2
+        version: 5.1.2
       '@radix-ui/react-popover':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -261,6 +270,10 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@google/generative-ai@0.24.1':
+    resolution: {integrity: sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q==}
+    engines: {node: '>=18.0.0'}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -817,6 +830,12 @@ packages:
     resolution: {integrity: sha512-vdUoj2CVbb+0Qszi8llP34vdUCfP7bfA9VoFr4Se1pFGu7VAPnk8lBnRat9IvqSxMfTvOHJSd7Rn6TUPjzKsnA==}
     engines: {node: '>=20'}
 
+  '@langchain/google-genai@2.0.1':
+    resolution: {integrity: sha512-Aq87qOPcib7oQtKmgXYM7evaBc/VKJOZ9IH4jchqobYj13xMfIaJogtZekSZdL2HiZrtq14+cWXhqfLe+MAbzg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@langchain/core': 1.1.1
+
   '@langchain/langgraph-checkpoint@1.0.0':
     resolution: {integrity: sha512-xrclBGvNCXDmi0Nz28t3vjpxSH6UYx6w5XAXSiiB1WEdc2xD2iY/a913I3x3a31XpInUW/GGfXXfePfaghV54A==}
     engines: {node: '>=18'}
@@ -853,6 +872,13 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       '@langchain/core': ^1.0.0
+
+  '@langchain/pinecone@1.0.1':
+    resolution: {integrity: sha512-iq/dmGg6RF+sMLyIhN5Z9eXgxQsr+vwj19B7HG4utR42mF2VM/yI7KJHnyL0n/LdXsovUi5F4fef8bF7ZlYFyA==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@langchain/core': ^1.0.0
+      '@pinecone-database/pinecone': ^5.0.2
 
   '@langchain/textsplitters@1.0.1':
     resolution: {integrity: sha512-rheJlB01iVtrOUzttscutRgLybPH9qR79EyzBEbf1u97ljWyuxQfCwIWK+SjoQTM9O8M7GGLLRBSYE26Jmcoww==}
@@ -932,6 +958,10 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
+
+  '@pinecone-database/pinecone@5.1.2':
+    resolution: {integrity: sha512-z7737KUA1hXwd508q1+o4bnRxj0NpMmzA2beyaFm7Y+EC2TYLT5ABuYsn/qhiwiEsYp8v1qS596eBhhvgNagig==}
+    engines: {node: '>=18.0.0'}
 
   '@playwright/test@1.57.0':
     resolution: {integrity: sha512-6TyEnHgd6SArQO8UO2OMTxshln3QMWBtPGrOCgs3wVEmQmwyuNtB10IZMfmYDE0riwNR1cu4q+pPcxMVtaG3TA==}
@@ -3475,6 +3505,10 @@ packages:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
     hasBin: true
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
@@ -3789,6 +3823,8 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
+  '@google/generative-ai@0.24.1': {}
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -3947,7 +3983,7 @@ snapshots:
       - openai
       - ws
 
-  '@langchain/community@1.0.6(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(zod@4.1.13))(@ibm-cloud/watsonx-ai@1.7.4)(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(ibm-cloud-sdk-core@5.4.4)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(pdf-parse@1.1.1)(playwright@1.57.0)(ws@8.18.3)':
+  '@langchain/community@1.0.6(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(zod@4.1.13))(@ibm-cloud/watsonx-ai@1.7.4)(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@pinecone-database/pinecone@5.1.2)(ibm-cloud-sdk-core@5.4.4)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(pdf-parse@1.1.1)(playwright@1.57.0)(ws@8.18.3)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.57.0)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(zod@4.1.13)
       '@ibm-cloud/watsonx-ai': 1.7.4
@@ -3964,6 +4000,7 @@ snapshots:
       zod: 4.1.13
     optionalDependencies:
       '@browserbasehq/sdk': 2.6.0
+      '@pinecone-database/pinecone': 5.1.2
       ignore: 5.3.2
       jsonwebtoken: 9.0.2
       pdf-parse: 1.1.1
@@ -3993,6 +4030,12 @@ snapshots:
       - '@opentelemetry/exporter-trace-otlp-proto'
       - '@opentelemetry/sdk-trace-base'
       - openai
+
+  '@langchain/google-genai@2.0.1(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))':
+    dependencies:
+      '@google/generative-ai': 0.24.1
+      '@langchain/core': 1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13))
+      uuid: 11.1.0
 
   '@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))':
     dependencies:
@@ -4030,6 +4073,13 @@ snapshots:
       zod: 4.1.13
     transitivePeerDependencies:
       - ws
+
+  '@langchain/pinecone@1.0.1(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@pinecone-database/pinecone@5.1.2)':
+    dependencies:
+      '@langchain/core': 1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13))
+      '@pinecone-database/pinecone': 5.1.2
+      flat: 5.0.2
+      uuid: 10.0.0
 
   '@langchain/textsplitters@1.0.1(@langchain/core@1.1.1(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))':
     dependencies:
@@ -4086,6 +4136,8 @@ snapshots:
       fastq: 1.19.1
 
   '@nolyfill/is-core-module@1.0.39': {}
+
+  '@pinecone-database/pinecone@5.1.2': {}
 
   '@playwright/test@1.57.0':
     dependencies:
@@ -5572,7 +5624,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.13.2)
+      retry-axios: 2.6.0(axios@1.13.2(debug@4.4.3))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -6545,7 +6597,7 @@ snapshots:
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 
-  retry-axios@2.6.0(axios@1.13.2):
+  retry-axios@2.6.0(axios@1.13.2(debug@4.4.3)):
     dependencies:
       axios: 1.13.2(debug@4.4.3)
 
@@ -6978,6 +7030,8 @@ snapshots:
       '@types/react': 19.2.7
 
   uuid@10.0.0: {}
+
+  uuid@11.1.0: {}
 
   uuid@9.0.1: {}
 

@@ -9,6 +9,7 @@ import { Message, UploadedFile, TokenUsage, DetailedTokenUsage } from "@/types";
 import FileUpload from "@/components/kokonutui/file-upload";
 import { FileText, Sparkles, Upload, X } from "lucide-react";
 
+
 /**
  * Implementation plan
  * Stage 1: Indexing
