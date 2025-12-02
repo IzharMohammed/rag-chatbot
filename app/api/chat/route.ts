@@ -3,12 +3,42 @@ import { webSearch } from "@/lib/tools";
 import { NextResponse } from "next/server";
 import { baseMessages } from "@/lib/constant";
 import { getGroqChatCompletion } from "@/lib/groq";
+import { vectorStore } from "../upload-pdf/route";
 
 export async function POST(req: Request) {
     const { message } = await req.json();
     console.log("message from frontend:-", message);
 
-    baseMessages.push({ role: 'user', content: message });
+    // Retrieve relevant context from Pinecone
+    let contextualizedMessage = message;
+    try {
+        console.log("calling similarity search");
+
+        const relevantDocs = await vectorStore.similaritySearch(message, 4); // Get top 4 most relevant chunks
+
+        if (relevantDocs.length > 0) {
+            const context = relevantDocs
+                .map((doc, index) => `[Document ${index + 1}]\n${doc.pageContent}`)
+                .join("\n\n");
+
+            console.log("Retrieved context from Pinecone:", context.substring(0, 200) + "...");
+
+            // Augment the user's message with retrieved context
+            contextualizedMessage = `Context from uploaded documents:
+${context}
+
+User Question: ${message}
+
+Please answer the user's question based on the context provided above. If the context doesn't contain relevant information, let the user know.`;
+        } else {
+            console.log("No relevant documents found in Pinecone");
+        }
+    } catch (error) {
+        console.error("Error retrieving from Pinecone:", error);
+        // Continue without context if retrieval fails
+    }
+
+    baseMessages.push({ role: 'user', content: contextualizedMessage });
 
     const chatCompletion = await getGroqChatCompletion(baseMessages);
     const aiMessage = chatCompletion.choices[0].message;

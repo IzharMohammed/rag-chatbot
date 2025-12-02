@@ -17,7 +17,7 @@ const pinecone = new PineconeClient();
 
 const pineconeIndex = pinecone.index(process.env.PINECONE_INDEX_NAME || "");
 
-const vectorStore = new PineconeStore(embeddings, {
+export const vectorStore = new PineconeStore(embeddings, {
     pineconeIndex,
     maxConcurrency: 5,
 });
