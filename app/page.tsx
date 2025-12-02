@@ -5,7 +5,7 @@ import { ChatMessage } from "@/components/chat-message";
 import { ChatInput } from "@/components/chat-input";
 import { TypingIndicator } from "@/components/typing-indicator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Message, UploadedFile } from "@/types";
+import { Message, UploadedFile, TokenUsage } from "@/types";
 import FileUpload from "@/components/kokonutui/file-upload";
 import { FileText, Sparkles, Upload, X } from "lucide-react";
 
@@ -14,6 +14,8 @@ export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isUploadPanelOpen, setIsUploadPanelOpen] = useState(false);
+  const [totalTokens, setTotalTokens] = useState(0);
+  const [showTokens, setShowTokens] = useState(false);
 
   const handleFilesUploaded = (file: File) => {
     const newFile: UploadedFile = {
@@ -58,6 +60,11 @@ export default function Home() {
 
       const data = await response.json();
 
+      // Update token usage if available
+      if (data.usage) {
+        setTotalTokens((prev) => prev + data.usage.total_tokens);
+      }
+
       const aiMessage: Message = {
         id: Math.random().toString(36).substr(2, 9),
         role: "assistant",
@@ -98,7 +105,7 @@ export default function Home() {
             {/* <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-foreground">
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-background" />
             </div> */}
-            <div>
+            <div className="flex-1">
               <h1 className="text-base sm:text-lg font-bold">DocuChat AI</h1>
               <p className="text-xs text-muted-foreground">
                 {uploadedFiles.length > 0
@@ -108,6 +115,19 @@ export default function Home() {
                   : "Upload documents to start chatting"}
               </p>
             </div>
+            {totalTokens > 0 && (
+              <button
+                onClick={() => setShowTokens(!showTokens)}
+                className="text-right hover:bg-muted/50 rounded-lg px-3 py-2 transition-colors"
+              >
+                <p className="text-xs font-medium text-foreground">
+                  {showTokens ? `${totalTokens.toLocaleString()} tokens` : "🔢"}
+                </p>
+                {showTokens && (
+                  <p className="text-xs text-muted-foreground">total used</p>
+                )}
+              </button>
+            )}
           </div>
         </div>
 

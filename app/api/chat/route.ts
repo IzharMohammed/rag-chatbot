@@ -52,8 +52,14 @@ export async function POST(req: Request) {
         const secondAiMessage = secondChatCompletion.choices[0].message;
 
         baseMessages.push({ role: 'assistant', content: secondAiMessage.content });
-        return NextResponse.json({ message: secondAiMessage.content });
+        return NextResponse.json({
+            message: secondAiMessage.content,
+            usage: secondChatCompletion.usage
+        });
     }
 
-    return NextResponse.json({ message: aiMessage.content });
+    return NextResponse.json({
+        message: aiMessage.content,
+        usage: chatCompletion.usage
+    });
 }
