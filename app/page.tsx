@@ -41,26 +41,49 @@ export default function Home() {
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
 
-    // Simulate AI response
+    // Call the API endpoint
     setIsTyping(true);
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: content }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response from API");
+      }
+
+      const data = await response.json();
+
       const aiMessage: Message = {
         id: Math.random().toString(36).substr(2, 9),
         role: "assistant",
-        content: `This is a demo response. I can see you've uploaded **${
-          uploadedFiles.length
-        }** file${uploadedFiles.length !== 1 ? "s" : ""}. 
-
-Once you integrate the RAG backend, I'll be able to answer questions about your documents!
-
-Your question was: "${content}"`,
+        content: data.message,
         timestamp: new Date(),
       };
 
       const newMessages = [...updatedMessages, aiMessage];
       setMessages(newMessages);
+    } catch (error) {
+      console.error("Error sending message:", error);
+
+      // Show error message to user
+      const errorMessage: Message = {
+        id: Math.random().toString(36).substr(2, 9),
+        role: "assistant",
+        content:
+          "Sorry, I encountered an error while processing your message. Please try again.",
+        timestamp: new Date(),
+      };
+
+      const newMessages = [...updatedMessages, errorMessage];
+      setMessages(newMessages);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const hasMessages = messages.length > 0;
