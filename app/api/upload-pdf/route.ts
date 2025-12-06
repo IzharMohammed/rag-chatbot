@@ -43,9 +43,17 @@ export async function POST(req: Request) {
         // Parse form data
         const formData = await req.formData();
         const file = formData.get("file") as File;
+        const sessionId = formData.get("sessionId") as string;
 
         // Validate file
         validateFile(file);
+
+        // Validate sessionId
+        if (!sessionId || sessionId.trim().length === 0) {
+            throw new Error("Session ID is required for data isolation");
+        }
+
+        console.log(`Processing upload for session: ${sessionId}`);
 
         // Create uploads directory in /tmp (Vercel-compatible)
         const uploadsDir = "/tmp/uploads";
@@ -95,14 +103,15 @@ export async function POST(req: Request) {
                 uploadDate: new Date().toISOString(),
                 chunkIndex: index,
                 totalChunks: splitDocs.length,
+                sessionId: sessionId, // Track which session uploaded this
             }
         }));
 
-        // Store embeddings in Pinecone vector database
+        // Store embeddings in Pinecone vector database with namespace isolation
         try {
-            const vectorStore = getVectorStore();
+            const vectorStore = getVectorStore(sessionId); // ✅ Use sessionId as namespace
             await vectorStore.addDocuments(docsWithMetadata);
-            console.log(`Successfully stored ${splitDocs.length} chunks in Pinecone`);
+            console.log(`Successfully stored ${splitDocs.length} chunks in Pinecone namespace: ${sessionId}`);
         } catch (vectorError) {
             console.error("Error storing in Pinecone:", vectorError);
             throw new Error(`Failed to store vectors in Pinecone: ${vectorError instanceof Error ? vectorError.message : 'Unknown error'}`);

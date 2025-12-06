@@ -30,20 +30,22 @@ function validateMessage(message: string): void {
 
 /**
  * Retrieves relevant context from Pinecone based on user query
+ * Only searches within the specified namespace (user's documents)
  * @param query - The user's query
+ * @param sessionId - Session ID for namespace isolation
  * @returns Contextualized message or original query
  */
-async function getContextualizedMessage(query: string): Promise<string> {
+async function getContextualizedMessage(query: string, sessionId: string): Promise<string> {
     try {
-        const vectorStore = getVectorStore();
+        const vectorStore = getVectorStore(sessionId); // User-specific namespace
         const relevantDocs: Document[] = await vectorStore.similaritySearch(query, MAX_CONTEXT_CHUNKS);
 
         if (relevantDocs.length > 0) {
             const context = relevantDocs
-                .map((doc, index) => `[Document ${index + 1}]\n${doc.pageContent}`)
-                .join("\n\n");
+                .map((doc, index) => `[Document ${index + 1}]\\n${doc.pageContent}`)
+                .join("\\n\\n");
 
-            console.log(`Retrieved ${relevantDocs.length} relevant documents from Pinecone`);
+            console.log(`Retrieved ${relevantDocs.length} relevant documents from Pinecone namespace: ${sessionId}`);
             console.log("Context preview:", context.substring(0, 200) + "...");
 
             // Augment the user's message with retrieved context
@@ -54,7 +56,7 @@ User Question: ${query}
 
 Please answer the user's question based on the context provided above. If the context doesn't contain relevant information, let the user know.`;
         } else {
-            console.log("No relevant documents found in Pinecone");
+            console.log(`No relevant documents found in Pinecone namespace: ${sessionId}`);
             return query;
         }
     } catch (error) {
@@ -68,14 +70,19 @@ export async function POST(req: Request) {
     try {
         // Parse and validate request
         const body = await req.json();
-        const { message } = body;
+        const { message, sessionId } = body;
 
         validateMessage(message);
 
-        console.log("User message:", message);
+        // Validate sessionId
+        if (!sessionId || sessionId.trim().length === 0) {
+            throw new Error("Session ID is required for data isolation");
+        }
 
-        // Retrieve relevant context from Pinecone
-        const contextualizedMessage = await getContextualizedMessage(message);
+        console.log(`User message from session ${sessionId}:`, message);
+
+        // Retrieve relevant context from Pinecone (user's namespace only)
+        const contextualizedMessage = await getContextualizedMessage(message, sessionId);
 
         // Add contextualized message to conversation history
         baseMessages.push({ role: 'user', content: contextualizedMessage });
@@ -176,3 +183,4 @@ export async function POST(req: Request) {
         );
     }
 }
+

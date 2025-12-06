@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message, UploadedFile, TokenUsage, DetailedTokenUsage } from "@/types";
 import FileUpload from "@/components/kokonutui/file-upload";
 import { FileText, Sparkles, Upload, X } from "lucide-react";
-
+import { getSessionId } from "@/lib/session"; // Session management
 
 /**
  * Implementation plan
@@ -53,8 +53,10 @@ export default function Home() {
     // Send PDF to backend for processing
     if (file.type === "application/pdf") {
       try {
+        const sessionId = getSessionId(); // Get user's session ID
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("sessionId", sessionId); // Include session ID
         console.log("formData:-", formData);
         const response = await fetch("/api/upload-pdf", {
           method: "POST",
@@ -87,12 +89,13 @@ export default function Home() {
     // Call the API endpoint
     setIsTyping(true);
     try {
+      const sessionId = getSessionId(); // Get user's session ID
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, sessionId }), // Include session ID
       });
 
       if (!response.ok) {
