@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     try {
         // Parse and validate request
         const body = await req.json();
-        const { message, sessionId } = body;
+        const { message, sessionId, useRAG } = body;
 
         validateMessage(message);
 
@@ -80,9 +80,14 @@ export async function POST(req: Request) {
         }
 
         console.log(`User message from session ${sessionId}:`, message);
+        console.log(`RAG Mode: ${useRAG}`);
 
-        // Retrieve relevant context from Pinecone (user's namespace only)
-        const contextualizedMessage = await getContextualizedMessage(message, sessionId);
+        let contextualizedMessage = message;
+
+        // Retrieve relevant context from Pinecone (user's namespace only) IF RAG mode is enabled
+        if (useRAG) {
+            contextualizedMessage = await getContextualizedMessage(message, sessionId);
+        }
 
         // Add contextualized message to conversation history
         baseMessages.push({ role: 'user', content: contextualizedMessage });

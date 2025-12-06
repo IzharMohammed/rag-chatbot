@@ -7,7 +7,8 @@ import { TypingIndicator } from "@/components/typing-indicator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message, UploadedFile, TokenUsage, DetailedTokenUsage } from "@/types";
 import FileUpload from "@/components/kokonutui/file-upload";
-import { FileText, Sparkles, Upload, X } from "lucide-react";
+import { FileText, Sparkles, Upload, X, Bot, FileStack } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { getSessionId } from "@/lib/session"; // Session management
 
 /**
@@ -38,6 +39,7 @@ export default function Home() {
       totalOutputTokens: 0,
       totalTokens: 0,
     });
+  const [isRAGMode, setIsRAGMode] = useState(false);
 
   const handleFilesUploaded = async (file: File) => {
     const newFile: UploadedFile = {
@@ -95,7 +97,11 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: content, sessionId }), // Include session ID
+        body: JSON.stringify({
+          message: content,
+          sessionId,
+          useRAG: isRAGMode,
+        }), // Include session ID and RAG mode flag
       });
 
       if (!response.ok) {
@@ -151,19 +157,56 @@ export default function Home() {
       <div className="flex flex-1 flex-col min-w-0">
         {/* Header */}
         <div className="border-b border-border bg-card/30 px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center gap-3">
-            {/* <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-foreground">
-              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-background" />
-            </div> */}
-            <div className="flex-1">
-              <h1 className="text-base sm:text-lg font-bold">DocuChat AI</h1>
-              <p className="text-xs text-muted-foreground">
-                {uploadedFiles.length > 0
-                  ? `${uploadedFiles.length} document${
-                      uploadedFiles.length !== 1 ? "s" : ""
-                    } uploaded`
-                  : "Upload documents to start chatting"}
-              </p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              {/* <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-foreground">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-background" />
+              </div> */}
+              <div>
+                <h1 className="text-base sm:text-lg font-bold">DocuChat AI</h1>
+                <p className="text-xs text-muted-foreground">
+                  {isRAGMode
+                    ? uploadedFiles.length > 0
+                      ? `${uploadedFiles.length} document${
+                          uploadedFiles.length !== 1 ? "s" : ""
+                        } uploaded`
+                      : "Upload documents to start chatting"
+                    : "Standard Chat Mode"}
+                </p>
+              </div>
+            </div>
+
+            {/* RAG Mode Toggle */}
+            <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-full border border-border/50">
+              <div
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all ${
+                  !isRAGMode
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                <Bot className="h-4 w-4" />
+                <span className="text-xs font-medium hidden sm:inline">
+                  Normal
+                </span>
+              </div>
+              <Switch
+                checked={isRAGMode}
+                onCheckedChange={setIsRAGMode}
+                className="data-[state=checked]:bg-primary"
+              />
+              <div
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all ${
+                  isRAGMode
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                <FileStack className="h-4 w-4" />
+                <span className="text-xs font-medium hidden sm:inline">
+                  RAG
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -188,19 +231,19 @@ export default function Home() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {[
                   {
-                    icon: FileText,
-                    title: "Upload Documents",
-                    description: "PDF, DOCX, TXT supported",
+                    icon: Bot,
+                    title: "Normal Chat",
+                    description: "General knowledge conversation",
+                  },
+                  {
+                    icon: FileStack,
+                    title: "RAG Mode",
+                    description: "Chat with your documents",
                   },
                   {
                     icon: Sparkles,
-                    title: "Ask Questions",
-                    description: "Natural language queries",
-                  },
-                  {
-                    icon: FileText,
-                    title: "Get Answers",
-                    description: "Instant AI responses",
+                    title: "Smart AI",
+                    description: "Powered by advanced LLMs",
                   },
                 ].map((feature, index) => (
                   <div
@@ -245,14 +288,16 @@ export default function Home() {
         />
       </div>
 
-      {/* Mobile Upload Button */}
-      <button
-        onClick={() => setIsUploadPanelOpen(true)}
-        className="md:hidden fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg hover:scale-105 transition-transform"
-        aria-label="Open upload panel"
-      >
-        <Upload className="h-6 w-6" />
-      </button>
+      {/* Mobile Upload Button - Only in RAG Mode */}
+      {isRAGMode && (
+        <button
+          onClick={() => setIsUploadPanelOpen(true)}
+          className="md:hidden fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg hover:scale-105 transition-transform"
+          aria-label="Open upload panel"
+        >
+          <Upload className="h-6 w-6" />
+        </button>
+      )}
 
       {/* Backdrop for mobile */}
       {isUploadPanelOpen && (
@@ -274,6 +319,7 @@ export default function Home() {
               ? "translate-x-0"
               : "translate-x-full md:translate-x-0"
           }
+          ${!isRAGMode ? "hidden md:hidden" : ""}
         `}
       >
         <div className="flex h-full flex-col">
