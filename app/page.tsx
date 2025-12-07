@@ -31,6 +31,7 @@ export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isUploadPanelOpen, setIsUploadPanelOpen] = useState(false);
+  const [isUploadPanelVisible, setIsUploadPanelVisible] = useState(true);
   const [totalTokens, setTotalTokens] = useState(0);
   const [showTokens, setShowTokens] = useState(false);
   const [detailedTokenUsage, setDetailedTokenUsage] =
@@ -182,6 +183,24 @@ export default function Home() {
                 </span>
               </div>
             )}
+
+            {/* Document panel toggle for desktop */}
+            <button
+              onClick={() => setIsUploadPanelVisible(!isUploadPanelVisible)}
+              className="hidden md:flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full border border-border/50 hover:bg-muted transition-colors"
+              title={
+                isUploadPanelVisible
+                  ? "Hide documents panel"
+                  : "Show documents panel"
+              }
+            >
+              <FileStack className="h-4 w-4 text-foreground" />
+              {uploadedFiles.length > 0 && (
+                <span className="text-xs font-medium">
+                  {uploadedFiles.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -285,17 +304,24 @@ export default function Home() {
       <div
         className={`
           fixed md:relative inset-y-0 right-0 z-50
-          w-full sm:w-96 md:w-96
           border-l border-border bg-card/30 backdrop-blur-sm
-          transform transition-transform duration-300 ease-in-out
+          transition-all duration-300 ease-in-out
           ${
+            // Mobile: use translate for slide effect
+            // Desktop: use width for collapse effect
             isUploadPanelOpen
               ? "translate-x-0"
               : "translate-x-full md:translate-x-0"
           }
+          ${
+            // Desktop width control
+            isUploadPanelVisible
+              ? "w-full sm:w-96 md:w-96"
+              : "w-full sm:w-96 md:w-0 md:border-l-0 md:overflow-hidden"
+          }
         `}
       >
-        <div className="flex h-full flex-col">
+        <div className="w-full h-full md:w-96 flex flex-col">
           {/* Upload Header */}
           <div className="border-b border-border px-4 sm:px-6 py-4">
             <div className="flex items-center justify-between">
@@ -306,8 +332,11 @@ export default function Home() {
                 </p>
               </div>
               <button
-                onClick={() => setIsUploadPanelOpen(false)}
-                className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
+                onClick={() => {
+                  setIsUploadPanelOpen(false);
+                  setIsUploadPanelVisible(false);
+                }}
+                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
                 aria-label="Close upload panel"
               >
                 <X className="h-5 w-5" />
