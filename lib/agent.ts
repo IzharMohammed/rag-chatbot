@@ -1,7 +1,7 @@
 import { ChatGroq } from "@langchain/groq";
-import { webSearchTool } from "./tools/web-search";
-import { createEventTool, listEventsTool, deleteEventTool } from "./tools/calendar";
-import { documentSearchTool } from "./tools/document-search";
+import { webSearchTool } from "../tools/web-search";
+import { createEventTool, listEventsTool, deleteEventTool } from "../tools/calendar";
+import { documentSearchTool } from "../tools/document-search";
 import { createAgent } from "langchain";
 
 // Initialize the model
