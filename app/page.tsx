@@ -30,7 +30,7 @@ export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isUploadPanelOpen, setIsUploadPanelOpen] = useState(false);
-  const [isUploadPanelVisible, setIsUploadPanelVisible] = useState(true);
+  const [isUploadPanelVisible, setIsUploadPanelVisible] = useState(false);
   const [totalTokens, setTotalTokens] = useState(0);
   const [detailedTokenUsage, setDetailedTokenUsage] =
     useState<DetailedTokenUsage>({

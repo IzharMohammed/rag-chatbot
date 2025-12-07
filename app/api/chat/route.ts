@@ -73,8 +73,9 @@ Guidelines:
                 ],
             },
             {
+                configurable: { thread_id: sessionId },
                 callbacks: [langfuseHandler], // Correct placement of callbacks
-            }
+            },
         );
 
         const lastMessage = result.messages[result.messages.length - 1];

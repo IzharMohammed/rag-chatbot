@@ -3,6 +3,10 @@ import { webSearchTool } from "../tools/web-search";
 import { createEventTool, listEventsTool, deleteEventTool } from "../tools/calendar";
 import { documentSearchTool } from "../tools/document-search";
 import { createAgent } from "langchain";
+import { MemorySaver } from "@langchain/langgraph";
+
+const checkpointer = new MemorySaver();
+
 
 // Initialize the model
 export const model = new ChatGroq({
@@ -26,4 +30,5 @@ console.log("Creating Agent with tools:", tools.map(t => t.name).join(", "));
 export const agent = createAgent({
     model,
     tools,
+    checkpointer,
 });

@@ -16,6 +16,7 @@ import { MessagesAnnotation, StateGraph, START, END } from "@langchain/langgraph
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { AIMessage } from "@langchain/core/messages";
 import { model, tools } from "./agent";
+import { MemorySaver } from "@langchain/langgraph";
 
 /**
  * Assistant node - invokes the LLM with tools
@@ -50,6 +51,9 @@ function shouldContinue(state: typeof MessagesAnnotation.State): "tools" | typeo
  */
 const toolNode = new ToolNode(tools);
 
+
+const checkpointer = new MemorySaver();
+
 /**
  * Build and compile the graph
  * This is the manual version of what createAgent() does automatically
@@ -60,7 +64,7 @@ export const graph = new StateGraph(MessagesAnnotation)
     .addEdge(START, "assistant")
     .addConditionalEdges("assistant", shouldContinue)
     .addEdge("tools", "assistant")
-    .compile();
+    .compile({ checkpointer });
 
 // Export as 'agent' for compatibility with API route
 export const graphAgent = graph;
