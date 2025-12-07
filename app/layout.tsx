@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,7 +11,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "DocuChat AI - Intelligent Document Conversations",
   description:
     "Chat with your documents using AI. Upload PDFs, DOCX, and TXT files to get instant answers to your questions.",

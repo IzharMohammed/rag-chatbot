@@ -39,7 +39,7 @@ export default function Home() {
       totalOutputTokens: 0,
       totalTokens: 0,
     });
-  const [isRAGMode, setIsRAGMode] = useState(false);
+  // RAG is now handled automatically by the agent - no toggle needed
 
   const handleFilesUploaded = async (file: File) => {
     const newFile: UploadedFile = {
@@ -100,8 +100,7 @@ export default function Home() {
         body: JSON.stringify({
           message: content,
           sessionId,
-          useRAG: isRAGMode,
-        }), // Include session ID and RAG mode flag
+        }), // Agent automatically decides when to use RAG
       });
 
       if (!response.ok) {
@@ -165,49 +164,24 @@ export default function Home() {
               <div>
                 <h1 className="text-base sm:text-lg font-bold">DocuChat AI</h1>
                 <p className="text-xs text-muted-foreground">
-                  {isRAGMode
-                    ? uploadedFiles.length > 0
-                      ? `${uploadedFiles.length} document${
-                          uploadedFiles.length !== 1 ? "s" : ""
-                        } uploaded`
-                      : "Upload documents to start chatting"
-                    : "Standard Chat Mode"}
+                  {uploadedFiles.length > 0
+                    ? `${uploadedFiles.length} document${
+                        uploadedFiles.length !== 1 ? "s" : ""
+                      } available • AI decides when to search`
+                    : "Intelligent AI Assistant with Tools"}
                 </p>
               </div>
             </div>
 
-            {/* RAG Mode Toggle */}
-            <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-full border border-border/50">
-              <div
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all ${
-                  !isRAGMode
-                    ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground"
-                }`}
-              >
-                <Bot className="h-4 w-4" />
-                <span className="text-xs font-medium hidden sm:inline">
-                  Normal
+            {/* Document count badge */}
+            {uploadedFiles.length > 0 && (
+              <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
+                <FileStack className="h-4 w-4 text-foreground" />
+                <span className="text-xs font-medium">
+                  {uploadedFiles.length}
                 </span>
               </div>
-              <Switch
-                checked={isRAGMode}
-                onCheckedChange={setIsRAGMode}
-                className="data-[state=checked]:bg-primary"
-              />
-              <div
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all ${
-                  isRAGMode
-                    ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground"
-                }`}
-              >
-                <FileStack className="h-4 w-4" />
-                <span className="text-xs font-medium hidden sm:inline">
-                  RAG
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -232,18 +206,18 @@ export default function Home() {
                 {[
                   {
                     icon: Bot,
-                    title: "Normal Chat",
-                    description: "General knowledge conversation",
+                    title: "Intelligent Routing",
+                    description: "Automatically uses the right tool",
                   },
                   {
                     icon: FileStack,
-                    title: "RAG Mode",
-                    description: "Chat with your documents",
+                    title: "Document Search",
+                    description: "Ask about uploaded PDFs",
                   },
                   {
                     icon: Sparkles,
-                    title: "Smart AI",
-                    description: "Powered by advanced LLMs",
+                    title: "Web & Calendar",
+                    description: "Search web, manage events",
                   },
                 ].map((feature, index) => (
                   <div
@@ -288,8 +262,8 @@ export default function Home() {
         />
       </div>
 
-      {/* Mobile Upload Button - Only in RAG Mode */}
-      {isRAGMode && (
+      {/* Mobile Upload Button */}
+      {uploadedFiles.length > 0 && (
         <button
           onClick={() => setIsUploadPanelOpen(true)}
           className="md:hidden fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg hover:scale-105 transition-transform"
@@ -319,7 +293,6 @@ export default function Home() {
               ? "translate-x-0"
               : "translate-x-full md:translate-x-0"
           }
-          ${!isRAGMode ? "hidden md:hidden" : ""}
         `}
       >
         <div className="flex h-full flex-col">

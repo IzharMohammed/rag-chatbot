@@ -1,12 +1,9 @@
-import { webSearch } from "@/lib/tools";
 import { NextResponse } from "next/server";
-import { baseMessages } from "@/lib/constant";
-import { getGroqChatCompletion } from "@/lib/groq";
-import { getVectorStore } from "@/lib/vectorstore";
-import type { Document } from "@langchain/core/documents";
+import { agent, graphAgent } from "@/lib/graph";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { CallbackHandler } from "@langfuse/langchain";
 
 // Constants
-const MAX_CONTEXT_CHUNKS = 4;
 const MAX_MESSAGE_LENGTH = 10000;
 
 /**
@@ -28,49 +25,11 @@ function validateMessage(message: string): void {
     }
 }
 
-/**
- * Retrieves relevant context from Pinecone based on user query
- * Only searches within the specified namespace (user's documents)
- * @param query - The user's query
- * @param sessionId - Session ID for namespace isolation
- * @returns Contextualized message or original query
- */
-async function getContextualizedMessage(query: string, sessionId: string): Promise<string> {
-    try {
-        const vectorStore = getVectorStore(sessionId); // User-specific namespace
-        const relevantDocs: Document[] = await vectorStore.similaritySearch(query, MAX_CONTEXT_CHUNKS);
-
-        if (relevantDocs.length > 0) {
-            const context = relevantDocs
-                .map((doc, index) => `[Document ${index + 1}]\\n${doc.pageContent}`)
-                .join("\\n\\n");
-
-            console.log(`Retrieved ${relevantDocs.length} relevant documents from Pinecone namespace: ${sessionId}`);
-            console.log("Context preview:", context.substring(0, 200) + "...");
-
-            // Augment the user's message with retrieved context
-            return `Context from uploaded documents:
-${context}
-
-User Question: ${query}
-
-Please answer the user's question based on the context provided above. If the context doesn't contain relevant information, let the user know.`;
-        } else {
-            console.log(`No relevant documents found in Pinecone namespace: ${sessionId}`);
-            return query;
-        }
-    } catch (error) {
-        console.error("Error retrieving from Pinecone:", error);
-        // If retrieval fails, continue with original query
-        return query;
-    }
-}
-
 export async function POST(req: Request) {
     try {
         // Parse and validate request
         const body = await req.json();
-        const { message, sessionId, useRAG } = body;
+        const { message, sessionId } = body;
 
         validateMessage(message);
 
@@ -80,92 +39,49 @@ export async function POST(req: Request) {
         }
 
         console.log(`User message from session ${sessionId}:`, message);
-        console.log(`RAG Mode: ${useRAG}`);
 
-        let contextualizedMessage = message;
-
-        // Retrieve relevant context from Pinecone (user's namespace only) IF RAG mode is enabled
-        if (useRAG) {
-            contextualizedMessage = await getContextualizedMessage(message, sessionId);
-        }
-
-        // Add contextualized message to conversation history
-        baseMessages.push({ role: 'user', content: contextualizedMessage });
-
-        // Get initial response from LLM
-        const chatCompletion = await getGroqChatCompletion(baseMessages);
-        const aiMessage = chatCompletion.choices[0].message;
-
-        if (!aiMessage || !aiMessage.content) {
-            throw new Error("Invalid response from LLM");
-        }
-
-        console.log("AI response received");
-
-        // Add AI response to conversation history
-        baseMessages.push({
-            role: 'assistant',
-            content: aiMessage.content,
-            tool_calls: aiMessage.tool_calls
+        // Initialize Langfuse callback handler with dynamic session ID
+        const langfuseHandler = new CallbackHandler({
+            sessionId,
+            userId: sessionId,
+            tags: ["rag-chatbot", "production"],
         });
 
-        // Handle tool calls (e.g., web search)
-        if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
-            for (const toolCall of aiMessage.tool_calls) {
-                if (toolCall.function.name === "webSearch") {
-                    const args = JSON.parse(toolCall.function.arguments);
-                    console.log(`Tool call: webSearch with args:`, args);
+        // System message with tool instructions and sessionId context
+        const systemMessageContent = `You are DocuChat AI, a helpful AI assistant.
 
-                    let toolResult = "";
-                    let attempts = 0;
-                    const maxRetries = 3;
+You have access to several tools:
+- document_search: Search the user's uploaded PDF documents (IMPORTANT: always pass sessionId: "${sessionId}")
+- web_search: Search the internet for current information
+- create_calendar_event: Create calendar events with Google Meet links
+- get-events: List calendar events
+- delete_calendar_event: Delete calendar events
 
-                    // Retry logic for web search
-                    while (attempts < maxRetries) {
-                        try {
-                            toolResult = await webSearch(args);
-                            console.log("Web search successful");
-                            break;
-                        } catch (error) {
-                            attempts++;
-                            console.error(`Web search failed (attempt ${attempts}/${maxRetries}):`, error);
-                            if (attempts === maxRetries) {
-                                toolResult = "Error: Failed to perform web search after multiple attempts.";
-                            }
-                        }
-                    }
+Guidelines:
+- When the user asks about uploaded documents or PDFs, use the document_search tool
+- When asked about current events or information you don't know, use web_search
+- For calendar requests, use the appropriate calendar tools
+- Always pass the sessionId "${sessionId}" when using document_search
+- Be concise, helpful, and accurate`;
 
-                    // Add tool result to conversation
-                    baseMessages.push({
-                        tool_call_id: toolCall.id,
-                        role: "tool",
-                        content: toolResult,
-                    });
-                }
+        // Invoke the unified agent with Langfuse tracing
+        const result = await graphAgent.invoke(
+            {
+                messages: [
+                    new SystemMessage(systemMessageContent),
+                    new HumanMessage(message),
+                ],
+            },
+            {
+                callbacks: [langfuseHandler], // Correct placement of callbacks
             }
+        );
 
-            // Get second response with tool results
-            const secondChatCompletion = await getGroqChatCompletion(baseMessages);
-            const secondAiMessage = secondChatCompletion.choices[0].message;
+        const lastMessage = result.messages[result.messages.length - 1];
 
-            if (!secondAiMessage || !secondAiMessage.content) {
-                throw new Error("Invalid second response from LLM");
-            }
-
-            baseMessages.push({ role: 'assistant', content: secondAiMessage.content });
-
-            return NextResponse.json({
-                success: true,
-                message: secondAiMessage.content,
-                usage: secondChatCompletion.usage
-            });
-        }
-
-        // Return initial response if no tool calls
         return NextResponse.json({
             success: true,
-            message: aiMessage.content,
-            usage: chatCompletion.usage
+            message: lastMessage.content,
         });
 
     } catch (error) {
