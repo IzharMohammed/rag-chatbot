@@ -1,37 +1,51 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { google } from 'googleapis';
+import { prisma } from '@/lib/prisma';
 
-const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URL
-);
+// Helper to get authenticated client for a session
+async function getAuthClient(sessionId: string) {
+    const userToken = await prisma.userToken.findUnique({
+        where: { sessionId },
+    });
 
-oauth2Client.setCredentials({
-    access_token: process.env.GOOGLE_ACCESS_TOKEN,
-    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-});
+    if (!userToken) {
+        throw new Error("User not authenticated. Please connect your Google Calendar first.");
+    }
 
-const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+    const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        process.env.GOOGLE_REDIRECT_URL
+    );
 
-// Mock Database
-interface CalendarEvent {
-    id: string;
-    title: string;
-    startTime: string;
-    endTime: string;
-    description?: string;
+    oauth2Client.setCredentials({
+        access_token: userToken.accessToken,
+        refresh_token: userToken.refreshToken,
+        expiry_date: Number(userToken.expiryDate),
+    });
+
+    // Automatically refresh token if needed
+    // The googleapis library handles this if refresh_token is present
+    // But we might want to listen to the 'tokens' event to save new tokens
+    oauth2Client.on('tokens', async (tokens) => {
+        if (tokens.access_token) {
+            await prisma.userToken.update({
+                where: { sessionId },
+                data: {
+                    accessToken: tokens.access_token,
+                    expiryDate: tokens.expiry_date ? BigInt(tokens.expiry_date) : undefined,
+                    refreshToken: tokens.refresh_token || undefined, // Only update if new one provided
+                },
+            });
+        }
+    });
+
+    return oauth2Client;
 }
 
-let events: CalendarEvent[] = [];
-
-type attendee = {
-    email: string;
-    displayName: string;
-};
-
 const createEventSchema = z.object({
+    sessionId: z.string().describe("The session ID of the user"),
     summary: z.string().describe('The title of the event'),
     start: z.object({
         dateTime: z.string().describe('The date time of start of the event.'),
@@ -46,40 +60,47 @@ const createEventSchema = z.object({
             email: z.string().describe('The email of the attendee'),
             displayName: z.string().describe('Then name of the attendee.'),
         })
-    ),
+    ).optional(),
 });
 
 type EventData = z.infer<typeof createEventSchema>;
 
 export const createEventTool = tool(
     async (eventData: EventData) => {
-        const { summary, start, end, attendees } = eventData;
+        const { sessionId, summary, start, end, attendees } = eventData;
 
-        const response = await calendar.events.insert({
-            calendarId: 'team.codersgyan@gmail.com',
-            sendUpdates: 'all',
-            conferenceDataVersion: 1,
-            requestBody: {
-                summary,
-                start,
-                end,
-                attendees,
-                conferenceData: {
-                    createRequest: {
-                        requestId: crypto.randomUUID(),
-                        conferenceSolutionKey: {
-                            type: 'hangoutsMeet',
+        try {
+            const auth = await getAuthClient(sessionId);
+            const calendar = google.calendar({ version: 'v3', auth });
+
+            const response = await calendar.events.insert({
+                calendarId: 'primary',
+                sendUpdates: 'all',
+                conferenceDataVersion: 1,
+                requestBody: {
+                    summary,
+                    start,
+                    end,
+                    attendees,
+                    conferenceData: {
+                        createRequest: {
+                            requestId: Math.random().toString(36).substring(7),
+                            conferenceSolutionKey: {
+                                type: 'hangoutsMeet',
+                            },
                         },
                     },
                 },
-            },
-        });
+            });
 
-        if (response.statusText === 'OK') {
-            return 'The meeting has been created.';
+            if (response.status === 200) {
+                return `The meeting has been created. Link: ${response.data.htmlLink}`;
+            }
+
+            return "Couldn't create a meeting.";
+        } catch (error) {
+            return `Error creating event: ${error instanceof Error ? error.message : "Unknown error"}`;
         }
-
-        return "Couldn't create a meeting.";
     },
     {
         name: "create_calendar_event",
@@ -88,79 +109,73 @@ export const createEventTool = tool(
     }
 );
 
-type Params = {
-    q: string;
-    timeMin: string;
-    timeMax: string;
-};
-
 export const listEventsTool = tool(
-    async (params: Params) => {
-        const { q, timeMin, timeMax } = params;
-
+    async ({ sessionId, q, timeMin, timeMax }: { sessionId: string, q?: string, timeMin?: string, timeMax?: string }) => {
         try {
+            const auth = await getAuthClient(sessionId);
+            const calendar = google.calendar({ version: 'v3', auth });
+
             const response = await calendar.events.list({
                 calendarId: 'primary',
-                q: q,
+                q,
                 timeMin,
                 timeMax,
+                maxResults: 10,
+                singleEvents: true,
+                orderBy: 'startTime',
             });
 
-            const result = response.data.items?.map((event) => {
-                return {
-                    id: event.id,
-                    summary: event.summary,
-                    status: event.status,
-                    organiser: event.organizer,
-                    start: event.start,
-                    end: event.end,
-                    attendees: event.attendees,
-                    meetingLink: event.hangoutLink,
-                    eventType: event.eventType,
-                };
-            });
+            const result = response.data.items?.map((event) => ({
+                id: event.id,
+                summary: event.summary,
+                start: event.start,
+                end: event.end,
+                link: event.htmlLink,
+                meetLink: event.hangoutLink
+            }));
+
+            if (!result || result.length === 0) {
+                return "No events found.";
+            }
 
             return JSON.stringify(result);
-        } catch (err) {
-            console.log('EERRRR', err);
+        } catch (error) {
+            return `Error listing events: ${error instanceof Error ? error.message : "Unknown error"}`;
         }
     },
     {
         name: 'get-events',
         description: 'Call to get the calendar events.',
         schema: z.object({
-            q: z
-                .string()
-                .describe(
-                    "The query to be used to get events from google calendar. It can be one of these values: summary, description, location, attendees display name, attendees email, organiser's name, organiser's email"
-                ),
-            timeMin: z.string().describe('The from datetime to get events.'),
-            timeMax: z.string().describe('The to datetime to get events.'),
+            sessionId: z.string().describe("The session ID of the user"),
+            q: z.string().optional().describe("Query string to search events"),
+            timeMin: z.string().optional().describe("Start time (ISO string)"),
+            timeMax: z.string().optional().describe("End time (ISO string)"),
         }),
     }
 );
 
 export const deleteEventTool = tool(
-    async ({ id }) => {
-        const initialLength = events.length;
-        events = events.filter((e) => e.id !== id);
+    async ({ sessionId, id }: { sessionId: string, id: string }) => {
+        try {
+            const auth = await getAuthClient(sessionId);
+            const calendar = google.calendar({ version: 'v3', auth });
 
-        if (events.length === initialLength) {
-            return JSON.stringify({
-                success: false,
-                message: `Event with ID ${id} not found`,
+            await calendar.events.delete({
+                calendarId: 'primary',
+                eventId: id,
             });
-        }
 
-        return JSON.stringify({
-            success: true,
-            message: `Event with ID ${id} deleted successfully`,
-        });
+            return `Event with ID ${id} deleted successfully`;
+        } catch (error) {
+            return `Error deleting event: ${error instanceof Error ? error.message : "Unknown error"}`;
+        }
     },
     {
         name: "delete_calendar_event",
         description: "Delete a calendar event by ID",
         schema: z.object({
+            sessionId: z.string().describe("The session ID of the user"),
             id: z.string().describe("The ID of the event to delete"),
         }),
     }

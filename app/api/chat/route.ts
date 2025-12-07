@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { agent, graphAgent } from "@/lib/graph";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { CallbackHandler } from "@langfuse/langchain";
+import { cookies } from "next/headers";
 
 // Constants
 const MAX_MESSAGE_LENGTH = 10000;
@@ -38,7 +39,9 @@ export async function POST(req: Request) {
             throw new Error("Session ID is required for data isolation");
         }
 
-        console.log(`User message from session ${sessionId}:`, message);
+        // Get the "DB Session ID" from cookies (this is the one linked to Google Tokens)
+        const cookieStore = await cookies();
+        const dbSessionId = cookieStore.get('sessionId')?.value;
 
         // Initialize Langfuse callback handler with dynamic session ID
         const langfuseHandler = new CallbackHandler({
@@ -46,6 +49,9 @@ export async function POST(req: Request) {
             userId: sessionId,
             tags: ["rag-chatbot", "production"],
         });
+
+        const currentDateTime = new Date().toLocaleString('sv-SE').replace(' ', 'T');
+        const timeZoneString = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // System message with tool instructions and sessionId context
         const systemMessageContent = `You are DocuChat AI, a helpful AI assistant.
@@ -60,9 +66,12 @@ You have access to several tools:
 Guidelines:
 - When the user asks about uploaded documents or PDFs, use the document_search tool
 - When asked about current events or information you don't know, use web_search
-- For calendar requests, use the appropriate calendar tools
+- For calendar requests, use the appropriate calendar tools and ALWAYS pass the sessionId "${dbSessionId || 'NOT_AUTHENTICATED'}"
 - Always pass the sessionId "${sessionId}" when using document_search
-- Be concise, helpful, and accurate`;
+- Be concise, helpful, and accurate
+
+Current datetime: ${currentDateTime}
+Current timezone string: ${timeZoneString}`;
 
         // Invoke the unified agent with Langfuse tracing
         const result = await graphAgent.invoke(

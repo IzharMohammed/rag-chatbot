@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChatMessage } from "@/components/chat-message";
 import { ChatInput } from "@/components/chat-input";
 import { TypingIndicator } from "@/components/typing-indicator";
@@ -9,6 +9,9 @@ import { Message, UploadedFile, TokenUsage, DetailedTokenUsage } from "@/types";
 import FileUpload from "@/components/kokonutui/file-upload";
 import { FileText, Sparkles, Upload, X, Bot, FileStack } from "lucide-react";
 import { getSessionId } from "@/lib/session"; // Session management
+import { Calendar, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useSearchParams, useRouter } from "next/navigation";
 
 /**
  * Implementation plan
@@ -38,6 +41,20 @@ export default function Home() {
       totalOutputTokens: 0,
       totalTokens: 0,
     });
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const isConnected = searchParams.get("connected") === "true";
+
+  useEffect(() => {
+    if (isConnected) {
+      // In a real app, use a toast notification
+      alert("Calendar connected successfully! 📅");
+      // Clean up URL
+      router.replace("/");
+    }
+  }, [isConnected, router]);
+
   // RAG is now handled automatically by the agent - no toggle needed
 
   const handleFilesUploaded = async (file: File) => {
@@ -199,6 +216,17 @@ export default function Home() {
                 </span>
               )}
             </button>
+
+            {/* Calendar Connect Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:flex gap-2 items-center"
+              onClick={() => (window.location.href = "/api/auth/google")}
+            >
+              <Calendar className="h-4 w-4" />
+              <span className="hidden md:inline">Connect Calendar</span>
+            </Button>
           </div>
         </div>
 
