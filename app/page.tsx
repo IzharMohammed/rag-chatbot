@@ -8,7 +8,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message, UploadedFile, TokenUsage, DetailedTokenUsage } from "@/types";
 import FileUpload from "@/components/kokonutui/file-upload";
 import { FileText, Sparkles, Upload, X, Bot, FileStack } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { getSessionId } from "@/lib/session"; // Session management
 
 /**
@@ -33,7 +32,6 @@ export default function Home() {
   const [isUploadPanelOpen, setIsUploadPanelOpen] = useState(false);
   const [isUploadPanelVisible, setIsUploadPanelVisible] = useState(true);
   const [totalTokens, setTotalTokens] = useState(0);
-  const [showTokens, setShowTokens] = useState(false);
   const [detailedTokenUsage, setDetailedTokenUsage] =
     useState<DetailedTokenUsage>({
       totalInputTokens: 0,
