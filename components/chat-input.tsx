@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, KeyboardEvent } from "react";
-import { motion } from "framer-motion";
-import { Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { TokenUsageDisplay } from "@/components/token-usage-display";
 import { DetailedTokenUsage } from "@/types";
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -20,66 +18,45 @@ export function ChatInput({
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
 
-  const handleSend = () => {
+  const placeholders = [
+    "Ask anything about your documents...",
+    "What is the summary of the report?",
+    "Find the financial data in the PDF...",
+    "Who are the key stakeholders mentioned?",
+    "Create a calendar event for the meeting...",
+  ];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (message.trim() && !disabled) {
       onSendMessage(message.trim());
       setMessage("");
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
-    <div className="border-t border-border/50 bg-background/95 px-3 py-3 sm:p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto max-w-4xl">
-        <div className="relative flex items-end gap-2">
-          <div className="relative flex-1">
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything about your documents..."
-              disabled={disabled}
-              rows={1}
-              className="max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-input bg-card/50 px-3 sm:px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              style={{
-                height: "auto",
-                overflowY: message.split("\n").length > 3 ? "auto" : "hidden",
-              }}
-            />
-          </div>
+    <div className="border-t border-border/50 bg-background/95 px-3 py-4 sm:p-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto max-w-3xl">
+        <div className="relative flex flex-col gap-2">
+          <PlaceholdersAndVanishInput
+            placeholders={placeholders}
+            onChange={handleChange}
+            onSubmit={handleSubmit}
+            disabled={disabled}
+            value={message}
+          />
 
-          {/* Token Usage Icon */}
+          {/* Token Usage Icon - Positioned absolutely or below */}
           {tokenUsage && tokenUsage.totalTokens > 0 && (
-            <TokenUsageDisplay usage={tokenUsage} />
+            <div className="absolute -bottom-6 right-0 scale-75 opacity-70 hover:opacity-100 transition-opacity">
+              <TokenUsageDisplay usage={tokenUsage} />
+            </div>
           )}
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              onClick={handleSend}
-              disabled={!message.trim() || disabled}
-              size="icon"
-              className="h-11 w-11 rounded-xl bg-foreground text-background hover:bg-foreground/90"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </motion.div>
         </div>
-
-        <p className="mt-2 text-center text-xs text-muted-foreground hidden sm:block">
-          Press{" "}
-          <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono">Enter</kbd>{" "}
-          to send,{" "}
-          <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono">
-            Shift + Enter
-          </kbd>{" "}
-          for new line
-        </p>
       </div>
     </div>
   );

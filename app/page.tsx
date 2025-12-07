@@ -304,20 +304,21 @@ export default function Home() {
       <div
         className={`
           fixed md:relative inset-y-0 right-0 z-50
-          border-l border-border bg-card/30 backdrop-blur-sm
+          border-l-0 md:border-l border-border 
+          bg-background md:bg-card/30 md:backdrop-blur-sm
           transition-all duration-300 ease-in-out
           ${
             // Mobile: use translate for slide effect
             // Desktop: use width for collapse effect
             isUploadPanelOpen
-              ? "translate-x-0"
+              ? "translate-x-0 shadow-2xl md:shadow-none"
               : "translate-x-full md:translate-x-0"
           }
           ${
             // Desktop width control
             isUploadPanelVisible
-              ? "w-full sm:w-96 md:w-96"
-              : "w-full sm:w-96 md:w-0 md:border-l-0 md:overflow-hidden"
+              ? "w-full sm:w-80 md:w-96"
+              : "w-full sm:w-80 md:w-0 md:border-l-0 md:overflow-hidden"
           }
         `}
       >
