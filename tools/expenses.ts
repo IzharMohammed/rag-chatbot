@@ -41,9 +41,9 @@ export const getExpensesTool = new DynamicStructuredTool({
     description: "Retrieve expenses from the database. Use this when the user asks to see their expenses or for a summary.",
     schema: z.object({
         sessionId: z.string().describe("The session ID of the user."),
-        startDate: z.string().optional().describe("Filter expenses after this date (ISO format)."),
-        endDate: z.string().optional().describe("Filter expenses before this date (ISO format)."),
-        category: z.string().optional().describe("Filter by category."),
+        startDate: z.string().nullable().optional().describe("Filter expenses after this date (ISO format)."),
+        endDate: z.string().nullable().optional().describe("Filter expenses before this date (ISO format)."),
+        category: z.string().nullable().optional().describe("Filter by category."),
     }),
     func: async ({ sessionId, startDate, endDate, category }) => {
         try {
@@ -59,16 +59,34 @@ export const getExpensesTool = new DynamicStructuredTool({
                 whereClause.category = { contains: category, mode: 'insensitive' };
             }
 
-            const expenses = await prisma.expense.findMany({
-                where: whereClause,
-                orderBy: { date: 'desc' },
-            });
+            const limit = 50;
+            const [expenses, totalCount] = await Promise.all([
+                prisma.expense.findMany({
+                    where: whereClause,
+                    orderBy: { date: 'desc' },
+                    take: limit,
+                    select: {
+                        date: true,
+                        category: true,
+                        amount: true,
+                        description: true,
+                    },
+                }),
+                prisma.expense.count({ where: whereClause }),
+            ]);
 
             if (expenses.length === 0) {
                 return "No expenses found for the given criteria.";
             }
 
-            return JSON.stringify(expenses);
+            const result = {
+                expenses,
+                totalFound: totalCount,
+                limit,
+                note: totalCount > limit ? `Showing top ${limit} most recent expenses out of ${totalCount}.` : undefined,
+            };
+
+            return JSON.stringify(result);
         } catch (error) {
             console.error("Error retrieving expenses:", error);
             return "Failed to retrieve expenses.";
