@@ -13,6 +13,17 @@ import {
 } from "@/components/ui/tooltip";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { ExpenseChart } from "./expense-chart";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ChatMessageProps {
   message: Message;
@@ -76,12 +87,56 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </div>
         </div>
 
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-          {isUser ? (
-            <p className="leading-relaxed">{message.content}</p>
-          ) : (
-            <ReactMarkdown>{message.content}</ReactMarkdown>
-          )}
+        <div className="prose prose-sm dark:prose-invert max-w-none prose-table:mt-2 prose-table:mb-2 prose-th:p-2 prose-td:p-2 prose-tr:border-b prose-tr:border-border">
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            {isUser ? (
+              <p className="leading-relaxed">{message.content}</p>
+            ) : (
+              <div>
+                {message.content
+                  .split(/(<expense-chart>[\s\S]*?<\/expense-chart>)/)
+                  .map((part, index) => {
+                    if (part.startsWith("<expense-chart>")) {
+                      try {
+                        const jsonString = part
+                          .replace("<expense-chart>", "")
+                          .replace("</expense-chart>", "")
+                          .trim();
+                        const chartData = JSON.parse(jsonString);
+                        return <ExpenseChart key={index} data={chartData} />;
+                      } catch (e) {
+                        console.error("Failed to parse chart data", e);
+                        return null;
+                      }
+                    }
+                    return (
+                      <ReactMarkdown
+                        key={index}
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          table: ({ node, ...props }) => (
+                            <div className="my-4 w-full overflow-hidden rounded-lg border border-border">
+                              <Table {...props} />
+                            </div>
+                          ),
+                          thead: ({ node, ...props }) => (
+                            <TableHeader {...props} />
+                          ),
+                          tbody: ({ node, ...props }) => (
+                            <TableBody {...props} />
+                          ),
+                          tr: ({ node, ...props }) => <TableRow {...props} />,
+                          th: ({ node, ...props }) => <TableHead {...props} />,
+                          td: ({ node, ...props }) => <TableCell {...props} />,
+                        }}
+                      >
+                        {part}
+                      </ReactMarkdown>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>

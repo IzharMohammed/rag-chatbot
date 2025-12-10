@@ -156,10 +156,11 @@ export default function Home() {
 
   return (
     <>
-      {/* Calendar connection handler wrapped in Suspense */}
+    
       <Suspense fallback={null}>
         <CalendarConnectionHandler />
       </Suspense>
+
       <div className="flex h-screen bg-background overflow-hidden">
         {/* Main Chat Area - Left Side */}
         <div className="flex flex-1 flex-col min-w-0">

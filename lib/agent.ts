@@ -2,6 +2,7 @@ import { ChatGroq } from "@langchain/groq";
 import { webSearchTool } from "../tools/web-search";
 import { createEventTool, listEventsTool, deleteEventTool } from "../tools/calendar";
 import { documentSearchTool } from "../tools/document-search";
+import { addExpenseTool, getExpensesTool, deleteExpenseTool } from "../tools/expenses";
 import { createAgent } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 
@@ -13,7 +14,7 @@ export const model = new ChatGroq({
     apiKey: process.env.GROQ_API_KEY,
     model: "openai/gpt-oss-20b",
     temperature: 0,
-});
+})
 
 // Define all tools including document search
 export const tools = [
@@ -22,6 +23,9 @@ export const tools = [
     listEventsTool,
     deleteEventTool,
     documentSearchTool, // RAG as a tool - agent decides when to use it
+    addExpenseTool,
+    getExpensesTool,
+    deleteExpenseTool,
 ];
 
 // Create the agent using modern LangChain API
