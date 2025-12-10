@@ -22,3 +22,14 @@ model UserToken {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model Expense {
+  id          String   @id @default(uuid())
+  amount      Float
+  category    String
+  description String?
+  date        DateTime @default(now())
+  userId      String   // Maps to sessionId for simplicity in this demo
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
