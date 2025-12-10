@@ -13,6 +13,7 @@ import { Calendar, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CalendarConnectionHandler } from "@/components/calendar-connection-handler";
+import { toast } from "sonner";
 
 /**
  * Implementation plan
@@ -108,7 +109,8 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response from API");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to get response from API");
       }
 
       const data = await response.json();
@@ -137,11 +139,15 @@ export default function Home() {
       console.error("Error sending message:", error);
 
       // Show error message to user
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+
       const errorMessage: Message = {
         id: Math.random().toString(36).substr(2, 9),
         role: "assistant",
         content:
-          "Sorry, I encountered an error while processing your message. Please try again.",
+          error instanceof Error
+            ? error.message
+            : "Sorry, I encountered an error while processing your message. Please try again.",
         timestamp: new Date(),
       };
 
@@ -156,7 +162,6 @@ export default function Home() {
 
   return (
     <>
-    
       <Suspense fallback={null}>
         <CalendarConnectionHandler />
       </Suspense>

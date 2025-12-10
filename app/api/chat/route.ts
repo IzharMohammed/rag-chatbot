@@ -135,18 +135,35 @@ Current timezone string: ${timeZoneString}`;
     } catch (error) {
         console.error("Error in chat endpoint:", error);
 
-        // Determine appropriate status code
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        const statusCode =
-            errorMessage.includes("required") ||
+        // Determine appropriate status code and message
+        let errorMessage = "An unexpected error occurred";
+        let statusCode = 500;
+
+        if (error instanceof Error) {
+            errorMessage = error.message;
+
+            // Check for rate limits or quota exceeded
+            if (
+                errorMessage.includes("413") ||
+                errorMessage.includes("rate_limit_exceeded") ||
+                errorMessage.includes("Request too large")
+            ) {
+                statusCode = 429; // Too Many Requests
+                errorMessage = "Daily token limit exceeded or request too large. Please try again later or reduce message size.";
+            } else if (
+                errorMessage.includes("required") ||
                 errorMessage.includes("cannot be empty") ||
-                errorMessage.includes("exceeds maximum") ? 400 : 500;
+                errorMessage.includes("exceeds maximum")
+            ) {
+                statusCode = 400;
+            }
+        }
 
         return NextResponse.json(
             {
                 success: false,
                 error: errorMessage,
-                message: "Sorry, I encountered an error while processing your message. Please try again."
+                message: errorMessage // Send the specific error message to frontend
             },
             { status: statusCode }
         );
