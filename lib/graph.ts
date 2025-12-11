@@ -92,10 +92,10 @@ Example:
 Current datetime: ${currentDateTime}
 Current timezone string: ${timeZoneString}`;
 
-    // Logic to trim history: keep only the last 20 messages to avoid token limits
+    // Logic to trim history: keep only the last 5 messages to avoid token limits
     // We filter out the messages to be removed
     const messages = state.messages;
-    const messagesToKeep = 10;
+    const messagesToKeep = 5;
 
     if (messages.length > messagesToKeep) {
         // Calculate how many messages to remove from the beginning
