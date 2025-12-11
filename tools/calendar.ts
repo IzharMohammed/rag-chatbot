@@ -110,16 +110,16 @@ export const createEventTool = tool(
 );
 
 export const listEventsTool = tool(
-    async ({ sessionId, q, timeMin, timeMax }: { sessionId: string, q?: string, timeMin?: string, timeMax?: string }) => {
+    async ({ sessionId, q, timeMin, timeMax }: { sessionId: string, q?: string | null, timeMin?: string | null, timeMax?: string | null }) => {
         try {
             const auth = await getAuthClient(sessionId);
             const calendar = google.calendar({ version: 'v3', auth });
 
             const response = await calendar.events.list({
                 calendarId: 'primary',
-                q,
-                timeMin,
-                timeMax,
+                q: q || undefined,
+                timeMin: timeMin || undefined,
+                timeMax: timeMax || undefined,
                 maxResults: 10,
                 singleEvents: true,
                 orderBy: 'startTime',
@@ -148,9 +148,9 @@ export const listEventsTool = tool(
         description: 'Call to get the calendar events.',
         schema: z.object({
             sessionId: z.string().describe("The session ID of the user"),
-            q: z.string().optional().describe("Query string to search events"),
-            timeMin: z.string().optional().describe("Start time (ISO string)"),
-            timeMax: z.string().optional().describe("End time (ISO string)"),
+            q: z.string().nullable().optional().describe("Query string to search events"),
+            timeMin: z.string().nullable().optional().describe("Start time (ISO string)"),
+            timeMax: z.string().nullable().optional().describe("End time (ISO string)"),
         }),
     }
 );

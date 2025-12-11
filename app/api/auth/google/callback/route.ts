@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
+    const state = searchParams.get('state'); // Retrieve sessionId from state
 
     if (!code) {
         return NextResponse.json({ error: 'No code provided' }, { status: 400 });
@@ -21,9 +22,9 @@ export async function GET(req: Request) {
         const { tokens } = await oauth2Client.getToken(code);
         oauth2Client.setCredentials(tokens);
 
-        // Get session ID from cookies or create a new one
+        // Get session ID from state (preferred) or cookies or create a new one
         const cookieStore = await cookies();
-        let sessionId = cookieStore.get('sessionId')?.value;
+        let sessionId = state || cookieStore.get('sessionId')?.value;
 
         if (!sessionId) {
             sessionId = Math.random().toString(36).substring(2, 15);

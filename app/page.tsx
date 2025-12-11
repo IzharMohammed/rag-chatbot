@@ -212,9 +212,7 @@ export default function Home() {
               >
                 <Button variant="outline">
                   <FileStack className="h-4 w-4 text-foreground" />
-                  <span className="text-xs font-medium">
-                   Upload Pdf
-                  </span>
+                  <span className="text-xs font-medium">Upload Pdf</span>
                 </Button>
 
                 {uploadedFiles.length > 0 && (
@@ -229,7 +227,10 @@ export default function Home() {
                 variant="outline"
                 size="sm"
                 className="hidden sm:flex gap-2 items-center"
-                onClick={() => (window.location.href = "/api/auth/google")}
+                onClick={() => {
+                  const sessionId = getSessionId();
+                  window.location.href = `/api/auth/google?sessionId=${sessionId}`;
+                }}
               >
                 <Calendar className="h-4 w-4" />
                 <span className="hidden md:inline">Connect Calendar</span>

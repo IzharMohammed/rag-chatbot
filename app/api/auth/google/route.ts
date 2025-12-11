@@ -1,7 +1,10 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const sessionId = searchParams.get('sessionId');
+
     const oauth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
@@ -18,6 +21,7 @@ export async function GET() {
         scope: scopes,
         prompt: 'consent', // Forces consent screen to ensure we get a refresh token
         include_granted_scopes: true,
+        state: sessionId || undefined, // Pass sessionId as state
     });
 
     return NextResponse.redirect(url);
