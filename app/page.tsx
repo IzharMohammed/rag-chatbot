@@ -203,14 +203,20 @@ export default function Home() {
               {/* Document panel toggle for desktop */}
               <button
                 onClick={() => setIsUploadPanelVisible(!isUploadPanelVisible)}
-                className="hidden md:flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-full border border-border/50 hover:bg-muted transition-colors"
+                className=""
                 title={
                   isUploadPanelVisible
                     ? "Hide documents panel"
                     : "Show documents panel"
                 }
               >
-                <FileStack className="h-4 w-4 text-foreground" />
+                <Button variant="outline">
+                  <FileStack className="h-4 w-4 text-foreground" />
+                  <span className="text-xs font-medium">
+                   Upload Pdf
+                  </span>
+                </Button>
+
                 {uploadedFiles.length > 0 && (
                   <span className="text-xs font-medium">
                     {uploadedFiles.length}
