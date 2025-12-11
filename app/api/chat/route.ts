@@ -115,7 +115,6 @@ Current timezone string: ${timeZoneString}`;
         const result = await graphAgent.invoke(
             {
                 messages: [
-                    new SystemMessage(systemMessageContent),
                     new HumanMessage(message),
                 ],
             },
